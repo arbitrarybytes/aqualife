@@ -15,6 +15,10 @@ app.use(express.json())
 const nowIso = () => new Date().toISOString()
 const MOCK_OTP = '1234'
 
+// Lightweight liveness probe — used by the keep-alive workflow to ping the
+// service without downloading the full frontend bundle on every request.
+app.get('/healthz', (req, res) => res.json({ ok: true, ts: nowIso() }))
+
 /* ----------------------------------------------------------------------- */
 /* Helpers                                                                 */
 /* ----------------------------------------------------------------------- */
