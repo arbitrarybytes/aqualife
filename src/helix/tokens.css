@@ -1,0 +1,521 @@
+/* ============================================================
+   HELIX DESIGN SYSTEM — Tokens
+   Enterprise IT Tools • Dark-first • Refined Premium
+   ============================================================ */
+
+:root {
+  /* ── Brand ───────────────────────────────────────────────── */
+  --hx-brand-50:  oklch(0.97 0.02 240);
+  --hx-brand-100: oklch(0.93 0.04 240);
+  --hx-brand-200: oklch(0.86 0.08 240);
+  --hx-brand-300: oklch(0.76 0.12 240);
+  --hx-brand-400: oklch(0.66 0.16 240);
+  --hx-brand-500: oklch(0.58 0.18 240);
+  --hx-brand-600: oklch(0.50 0.18 240);
+  --hx-brand-700: oklch(0.42 0.16 240);
+  --hx-brand-800: oklch(0.34 0.12 240);
+  --hx-brand-900: oklch(0.26 0.08 240);
+
+  /* ── Accent (electric cyan) ──────────────────────────────── */
+  --hx-accent-300: oklch(0.85 0.14 195);
+  --hx-accent-400: oklch(0.78 0.16 195);
+  --hx-accent-500: oklch(0.72 0.17 195);
+  --hx-accent-600: oklch(0.62 0.16 195);
+
+  /* ── Semantic ────────────────────────────────────────────── */
+  --hx-success: oklch(0.72 0.17 158);
+  --hx-success-bg: oklch(0.28 0.06 158);
+  --hx-warning: oklch(0.78 0.16 75);
+  --hx-warning-bg: oklch(0.30 0.06 75);
+  --hx-danger:  oklch(0.65 0.21 22);
+  --hx-danger-bg: oklch(0.30 0.08 22);
+  --hx-info:    oklch(0.70 0.15 240);
+  --hx-info-bg: oklch(0.28 0.06 240);
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --hx-radius-xs: 4px;
+  --hx-radius-sm: 6px;
+  --hx-radius-md: 8px;
+  --hx-radius-lg: 12px;
+  --hx-radius-xl: 16px;
+  --hx-radius-2xl: 20px;
+  --hx-radius-full: 9999px;
+
+  /* ── Type scale ──────────────────────────────────────────── */
+  --hx-font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --hx-font-mono: 'Space Mono', ui-monospace, 'SF Mono', monospace;
+  --hx-font-display: var(--hx-font-sans);
+  --hx-font-feat-sans: 'ss01', 'ss02', 'cv11';
+  --hx-font-feat-mono: 'zero', 'ss01';
+  --hx-letter-tight: -0.02em;
+  --hx-letter-snug: -0.01em;
+  --hx-letter-normal: 0;
+  --hx-letter-wide: 0.04em;
+  --hx-letter-display: -0.035em;
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  /* Easing — six curves covering the common motion grammars.
+     out: decelerate to rest (most UI in/exit animations)
+     in: accelerate from rest (rare; usually for things leaving toward an edge)
+     in-out: symmetric ease (transforms that travel + return)
+     spring: gentle overshoot, settle (bouncy but composed)
+     bounce: a bigger overshoot for celebration moments
+     snap: very fast at the start, then crisp settle (toggles, taps)
+     anticipate: pulls back briefly before lunging forward (drawer pulls,
+                 attention-grabbing entries) */
+  --hx-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --hx-ease-in:  cubic-bezier(0.64, 0, 0.78, 0);
+  --hx-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --hx-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --hx-ease-bounce: cubic-bezier(0.18, 1.95, 0.36, 1);
+  --hx-ease-snap:   cubic-bezier(0.5, 0, 0.1, 1);
+  --hx-ease-anticipate: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+  /* Duration ramp — five steps. instant is for state flips (focus,
+     toggle clicks) where any visible easing reads as lag; xslow is
+     for full-page route transitions and big content reflows. */
+  --hx-dur-instant: 60ms;
+  --hx-dur-fast:    120ms;
+  --hx-dur-base:    200ms;
+  --hx-dur-slow:    360ms;
+  --hx-dur-xslow:   560ms;
+}
+
+/* ── DARK (default) ──────────────────────────────────────── */
+:root, .hx-dark {
+  --hx-bg:        oklch(0.16 0.012 255);
+  --hx-bg-1:      oklch(0.19 0.014 255);
+  --hx-bg-2:      oklch(0.22 0.016 255);
+  --hx-bg-3:      oklch(0.26 0.018 255);
+  --hx-bg-elev:   oklch(0.21 0.015 255);
+  --hx-bg-overlay: oklch(0.10 0.010 255 / 0.72);
+
+  --hx-line:      oklch(0.30 0.014 255);
+  --hx-line-soft: oklch(0.26 0.012 255);
+  --hx-line-strong: oklch(0.40 0.014 255);
+
+  /* fg ramp — every tier hits ≥4.5:1 against bg (0.16L). The old
+     ramp bottomed at 0.50L which read as gray-on-gray at small
+     sizes; muted +4L, subtle +12L, faint +14L for legibility. */
+  --hx-fg:        oklch(0.97 0.005 255);
+  --hx-fg-muted:  oklch(0.78 0.010 255);
+  --hx-fg-subtle: oklch(0.70 0.012 255);
+  --hx-fg-faint:  oklch(0.64 0.012 255);
+  --hx-fg-on-brand: oklch(0.99 0 0);
+
+  --hx-primary:      var(--hx-brand-500);
+  --hx-primary-hover: var(--hx-brand-400);
+  --hx-primary-soft: oklch(0.30 0.08 240);
+
+  --hx-ring: oklch(0.66 0.16 240 / 0.55);
+  --hx-shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.4);
+  --hx-shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.45), 0 2px 4px -2px oklch(0 0 0 / 0.3);
+  --hx-shadow-lg: 0 16px 40px -12px oklch(0 0 0 / 0.6), 0 4px 12px -4px oklch(0 0 0 / 0.4);
+  --hx-shadow-glow: 0 0 0 1px oklch(0.66 0.16 240 / 0.3), 0 0 24px -2px oklch(0.66 0.16 240 / 0.35);
+
+  --hx-grid-line: oklch(1 0 0 / 0.04);
+  --hx-noise-opacity: 0.025;
+}
+
+/* ── DIM (softer dark, warmer + lifted) ──────────────────────
+   For users who find full-dark too harsh or who lose gray text
+   on near-black. Surfaces lift ~6L; muted fg gains ~6L; hue
+   warms slightly off blue toward neutral. AA-safe at every fg
+   tier against bg/bg-1/bg-elev. Same in Glass mode. */
+.hx-dim {
+  --hx-bg:        oklch(0.24 0.010 260);
+  --hx-bg-1:      oklch(0.27 0.012 260);
+  --hx-bg-2:      oklch(0.30 0.013 260);
+  --hx-bg-3:      oklch(0.33 0.014 260);
+  --hx-bg-elev:   oklch(0.29 0.012 260);
+  --hx-bg-overlay: oklch(0.16 0.010 260 / 0.68);
+
+  --hx-line:      oklch(0.40 0.012 260);
+  --hx-line-soft: oklch(0.34 0.010 260);
+  --hx-line-strong: oklch(0.50 0.014 260);
+
+  --hx-fg:        oklch(0.97 0.005 260);
+  --hx-fg-muted:  oklch(0.82 0.010 260);
+  --hx-fg-subtle: oklch(0.70 0.012 260);
+  --hx-fg-faint:  oklch(0.62 0.012 260);
+
+  --hx-grid-line: oklch(1 0 0 / 0.05);
+  --hx-noise-opacity: 0.02;
+}
+
+/* ── SEPIA (warm low-light, neither dark nor light) ──────────
+   Paper-toned, warm hues. Reduces blue-light fatigue and avoids
+   the readability hit of true dark mode. Works under Glass. */
+.hx-sepia {
+  --hx-bg:        oklch(0.91 0.025 75);
+  --hx-bg-1:      oklch(0.88 0.028 75);
+  --hx-bg-2:      oklch(0.85 0.030 75);
+  --hx-bg-3:      oklch(0.82 0.032 75);
+  --hx-bg-elev:   oklch(0.93 0.022 75);
+  --hx-bg-overlay: oklch(0.30 0.030 60 / 0.45);
+
+  --hx-line:      oklch(0.74 0.028 70);
+  --hx-line-soft: oklch(0.82 0.025 72);
+  --hx-line-strong: oklch(0.62 0.030 65);
+
+  --hx-fg:        oklch(0.26 0.030 50);
+  --hx-fg-muted:  oklch(0.42 0.028 55);
+  --hx-fg-subtle: oklch(0.52 0.026 60);
+  --hx-fg-faint:  oklch(0.60 0.024 65);
+  --hx-fg-on-brand: oklch(0.99 0 0);
+
+  --hx-primary: oklch(0.46 0.16 240);
+  --hx-primary-hover: var(--hx-brand-700);
+  --hx-primary-soft: oklch(0.86 0.04 240);
+
+  --hx-ring: oklch(0.50 0.18 240 / 0.45);
+  --hx-shadow-sm: 0 1px 2px 0 oklch(0.30 0.04 60 / 0.10);
+  --hx-shadow-md: 0 4px 12px -2px oklch(0.30 0.04 60 / 0.14), 0 2px 4px -2px oklch(0.30 0.04 60 / 0.08);
+  --hx-shadow-lg: 0 16px 40px -12px oklch(0.30 0.04 60 / 0.22);
+  --hx-shadow-glow: 0 0 0 1px oklch(0.50 0.18 240 / 0.25), 0 0 24px -2px oklch(0.50 0.18 240 / 0.18);
+
+  --hx-grid-line: oklch(0.30 0.03 60 / 0.06);
+  --hx-noise-opacity: 0;
+
+  --hx-success: oklch(0.46 0.14 158);
+  --hx-warning: oklch(0.50 0.14 60);
+  --hx-danger:  oklch(0.50 0.20 22);
+  --hx-info:    oklch(0.48 0.16 240);
+  --hx-success-bg: oklch(0.88 0.05 158);
+  --hx-warning-bg: oklch(0.88 0.06 75);
+  --hx-danger-bg:  oklch(0.90 0.04 22);
+  --hx-info-bg:    oklch(0.88 0.04 240);
+}
+
+/* ── LIGHT ───────────────────────────────────────────────── */
+.hx-light {
+  --hx-bg:        oklch(0.99 0.003 255);
+  --hx-bg-1:      oklch(0.97 0.004 255);
+  --hx-bg-2:      oklch(0.95 0.005 255);
+  --hx-bg-3:      oklch(0.92 0.006 255);
+  --hx-bg-elev:   oklch(1 0 0);
+  --hx-bg-overlay: oklch(0.20 0.010 255 / 0.45);
+
+  --hx-line:      oklch(0.88 0.006 255);
+  --hx-line-soft: oklch(0.93 0.004 255);
+  --hx-line-strong: oklch(0.78 0.008 255);
+
+  --hx-fg:        oklch(0.20 0.014 255);
+  --hx-fg-muted:  oklch(0.40 0.012 255);
+  --hx-fg-subtle: oklch(0.54 0.010 255);
+  --hx-fg-faint:  oklch(0.58 0.010 255);
+  --hx-fg-on-brand: oklch(0.99 0 0);
+
+  --hx-primary: oklch(0.46 0.18 240);
+  --hx-primary-hover: var(--hx-brand-700);
+  --hx-primary-soft: oklch(0.94 0.04 240);
+
+  --hx-ring: oklch(0.50 0.18 240 / 0.45);
+  --hx-shadow-sm: 0 1px 2px 0 oklch(0.20 0.02 255 / 0.06);
+  --hx-shadow-md: 0 4px 12px -2px oklch(0.20 0.02 255 / 0.10), 0 2px 4px -2px oklch(0.20 0.02 255 / 0.06);
+  --hx-shadow-lg: 0 16px 40px -12px oklch(0.20 0.02 255 / 0.18), 0 4px 12px -4px oklch(0.20 0.02 255 / 0.10);
+  --hx-shadow-glow: 0 0 0 1px oklch(0.50 0.18 240 / 0.25), 0 0 24px -2px oklch(0.50 0.18 240 / 0.20);
+
+  --hx-grid-line: oklch(0 0 0 / 0.04);
+  --hx-noise-opacity: 0;
+
+  /* Semantic surfaces — light-mode overrides (defaults are dark-tuned) */
+  --hx-success-bg: oklch(0.96 0.04 158);
+  --hx-warning-bg: oklch(0.97 0.05 75);
+  --hx-danger-bg:  oklch(0.96 0.04 22);
+  --hx-info-bg:    oklch(0.96 0.04 240);
+
+  /* Semantic foregrounds — darkened in light mode for AA contrast on white.
+     The dark-mode hues at 0.7L washed out below 3:1 against the near-white bg;
+     these land north of 4.5:1 and still read as the intended status hue. */
+  --hx-success: oklch(0.48 0.16 158);
+  --hx-warning: oklch(0.50 0.14 75);
+  --hx-danger:  oklch(0.52 0.20 22);
+  --hx-info:    oklch(0.50 0.16 240);
+}
+
+/* ── LIGHT-GRAY (paperless workstation, ultra-low-glare) ──
+   Cool neutral surfaces between sepia and full light. Designed
+   for finance/trading desks where users sit 8+ hours and full
+   white burns; avoids sepia's warmth which mis-tints data viz.
+   All fg tiers ≥ 4.5:1 against bg. Same brand/semantic foreground
+   tuning as light mode, just on darker, lower-chroma surfaces. */
+.hx-graylight {
+  --hx-bg:        oklch(0.93 0.003 255);
+  --hx-bg-1:      oklch(0.91 0.004 255);
+  --hx-bg-2:      oklch(0.88 0.005 255);
+  --hx-bg-3:      oklch(0.85 0.006 255);
+  --hx-bg-elev:   oklch(0.96 0.002 255);
+  --hx-bg-overlay: oklch(0.18 0.010 255 / 0.42);
+
+  --hx-line:      oklch(0.78 0.006 255);
+  --hx-line-soft: oklch(0.85 0.005 255);
+  --hx-line-strong: oklch(0.66 0.008 255);
+
+  --hx-fg:        oklch(0.18 0.014 255);
+  --hx-fg-muted:  oklch(0.38 0.012 255);
+  --hx-fg-subtle: oklch(0.50 0.010 255);
+  --hx-fg-faint:  oklch(0.56 0.010 255);
+  --hx-fg-on-brand: oklch(0.99 0 0);
+
+  --hx-primary: oklch(0.46 0.18 240);
+  --hx-primary-hover: var(--hx-brand-700);
+  --hx-primary-soft: oklch(0.86 0.05 240);
+
+  --hx-ring: oklch(0.50 0.18 240 / 0.45);
+  --hx-shadow-sm: 0 1px 2px 0 oklch(0.18 0.02 255 / 0.08);
+  --hx-shadow-md: 0 4px 12px -2px oklch(0.18 0.02 255 / 0.12), 0 2px 4px -2px oklch(0.18 0.02 255 / 0.08);
+  --hx-shadow-lg: 0 16px 40px -12px oklch(0.18 0.02 255 / 0.20), 0 4px 12px -4px oklch(0.18 0.02 255 / 0.12);
+  --hx-shadow-glow: 0 0 0 1px oklch(0.50 0.18 240 / 0.25), 0 0 24px -2px oklch(0.50 0.18 240 / 0.20);
+
+  --hx-grid-line: oklch(0 0 0 / 0.05);
+  --hx-noise-opacity: 0;
+
+  --hx-success-bg: oklch(0.92 0.05 158);
+  --hx-warning-bg: oklch(0.93 0.06 75);
+  --hx-danger-bg:  oklch(0.92 0.05 22);
+  --hx-info-bg:    oklch(0.92 0.05 240);
+  --hx-success: oklch(0.46 0.16 158);
+  --hx-warning: oklch(0.48 0.14 75);
+  --hx-danger:  oklch(0.50 0.20 22);
+  --hx-info:    oklch(0.48 0.16 240);
+}
+
+/* ── Finance / market tokens (theme-aware) ──────────────────
+   The finance domain has its own color grammar:
+     • gain/loss are first-class semantics, distinct from success/danger
+     • gain default is green, loss default is red — but tradeable,
+       since Asian markets invert. Set on a wrapping element:
+         <div class="hx-mkt-redup"> ... </div>     ← red up / green down
+       gain/loss tokens swap automatically; component code stays neutral.
+     • per-instrument-class hues for allocation charts and badges
+   All hues are AA-safe at the chosen lightness against bg. */
+:root {
+  --hx-mkt-gain:     oklch(0.72 0.17 158);
+  --hx-mkt-gain-bg:  oklch(0.28 0.07 158);
+  --hx-mkt-gain-soft: oklch(0.32 0.05 158);
+  --hx-mkt-loss:     oklch(0.65 0.21 22);
+  --hx-mkt-loss-bg:  oklch(0.30 0.08 22);
+  --hx-mkt-loss-soft: oklch(0.32 0.06 22);
+  --hx-mkt-flat:     var(--hx-fg-muted);
+  --hx-mkt-flat-bg:  var(--hx-bg-3);
+
+  /* Asset class palette — distinct hues for allocation viz.
+     Equity (brand blue), Fixed Income (teal), Cash (gray),
+     Alts (purple), Crypto (amber), Real Estate (rose),
+     Commodities (orange), Mutual Fund (cyan).
+     Designed to hold up at small swatch sizes. */
+  --hx-asset-equity:    oklch(0.66 0.16 240);
+  --hx-asset-fixed:     oklch(0.68 0.13 195);
+  --hx-asset-cash:      oklch(0.70 0.02 255);
+  --hx-asset-alts:      oklch(0.62 0.18 290);
+  --hx-asset-crypto:    oklch(0.74 0.16 70);
+  --hx-asset-realestate: oklch(0.66 0.16 12);
+  --hx-asset-commodity: oklch(0.70 0.18 45);
+  --hx-asset-mf:        oklch(0.72 0.14 215);
+
+  /* Sector palette — 11 GICS sectors. Cycles through hue space
+     but maintains consistent L+C so no sector visually dominates. */
+  --hx-sector-tech:     oklch(0.66 0.16 240);
+  --hx-sector-finance:  oklch(0.68 0.14 200);
+  --hx-sector-health:   oklch(0.68 0.16 158);
+  --hx-sector-discr:    oklch(0.70 0.16 80);
+  --hx-sector-staples:  oklch(0.66 0.13 130);
+  --hx-sector-energy:   oklch(0.68 0.18 45);
+  --hx-sector-utils:    oklch(0.66 0.13 280);
+  --hx-sector-realest:  oklch(0.66 0.16 12);
+  --hx-sector-mat:      oklch(0.68 0.15 95);
+  --hx-sector-comm:     oklch(0.66 0.16 320);
+  --hx-sector-indus:    oklch(0.68 0.10 250);
+}
+.hx-mkt-redup {
+  --hx-mkt-gain:     oklch(0.65 0.21 22);
+  --hx-mkt-gain-bg:  oklch(0.30 0.08 22);
+  --hx-mkt-gain-soft: oklch(0.32 0.06 22);
+  --hx-mkt-loss:     oklch(0.72 0.17 158);
+  --hx-mkt-loss-bg:  oklch(0.28 0.07 158);
+  --hx-mkt-loss-soft: oklch(0.32 0.05 158);
+}
+/* Light-mode tunings for market hues (better contrast on near-white bg) */
+.hx-light, .hx-graylight, .hx-sepia {
+  --hx-mkt-gain:     oklch(0.46 0.16 158);
+  --hx-mkt-gain-bg:  oklch(0.92 0.05 158);
+  --hx-mkt-gain-soft: oklch(0.85 0.07 158);
+  --hx-mkt-loss:     oklch(0.50 0.20 22);
+  --hx-mkt-loss-bg:  oklch(0.92 0.05 22);
+  --hx-mkt-loss-soft: oklch(0.86 0.07 22);
+}
+.hx-light.hx-mkt-redup, .hx-graylight.hx-mkt-redup, .hx-sepia.hx-mkt-redup {
+  --hx-mkt-gain:     oklch(0.50 0.20 22);
+  --hx-mkt-gain-bg:  oklch(0.92 0.05 22);
+  --hx-mkt-gain-soft: oklch(0.86 0.07 22);
+  --hx-mkt-loss:     oklch(0.46 0.16 158);
+  --hx-mkt-loss-bg:  oklch(0.92 0.05 158);
+  --hx-mkt-loss-soft: oklch(0.85 0.07 158);
+}
+
+/* ── Atmosphere ──────────────────────────────────────────── */
+.hx-grid-bg {
+  background-image:
+    linear-gradient(to right, var(--hx-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hx-grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.hx-grid-bg-fine {
+  background-image:
+    linear-gradient(to right, var(--hx-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hx-grid-line) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* ── Background pattern library ──────────────────────────── */
+.hx-bg-dots {
+  background-image: radial-gradient(var(--hx-grid-line) 1px, transparent 1.2px);
+  background-size: 16px 16px;
+}
+.hx-bg-cross {
+  background-image:
+    linear-gradient(to right, var(--hx-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hx-grid-line) 1px, transparent 1px),
+    radial-gradient(circle at 0 0, oklch(from var(--hx-primary) l c h / 0.18) 1.5px, transparent 2px);
+  background-size: 32px 32px, 32px 32px, 32px 32px;
+}
+.hx-bg-diag {
+  background-image: repeating-linear-gradient(
+    45deg, var(--hx-grid-line) 0 1px, transparent 1px 12px
+  );
+}
+.hx-bg-hex {
+  --hx-hex-c: oklch(from var(--hx-primary) l c h / 0.10);
+  background-color: transparent;
+  background-image:
+    radial-gradient(circle at 50% 0, var(--hx-hex-c) 1px, transparent 1.5px),
+    radial-gradient(circle at 0 50%, var(--hx-hex-c) 1px, transparent 1.5px),
+    radial-gradient(circle at 100% 50%, var(--hx-hex-c) 1px, transparent 1.5px),
+    radial-gradient(circle at 50% 100%, var(--hx-hex-c) 1px, transparent 1.5px);
+  background-size: 28px 48px;
+}
+.hx-bg-circuit {
+  background-image:
+    linear-gradient(0deg, transparent 23px, oklch(from var(--hx-primary) l c h / 0.18) 23px, oklch(from var(--hx-primary) l c h / 0.18) 24px, transparent 24px),
+    linear-gradient(90deg, transparent 23px, oklch(from var(--hx-primary) l c h / 0.18) 23px, oklch(from var(--hx-primary) l c h / 0.18) 24px, transparent 24px),
+    radial-gradient(circle, oklch(from var(--hx-accent-500) l c h / 0.45) 1.4px, transparent 2px);
+  background-size: 48px 48px, 48px 48px, 48px 48px;
+  background-position: 0 0, 0 0, 24px 24px;
+}
+.hx-bg-noise {
+  position: relative;
+}
+.hx-bg-noise::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC45JyBudW1PY3RhdmVzPScyJyBzdGl0Y2hUaWxlcz0nc3RpdGNoJy8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsdGVyPSd1cmwoI24pJyBvcGFjaXR5PScwLjUnLz48L3N2Zz4=");
+  opacity: var(--hx-noise-opacity, 0.06); mix-blend-mode: overlay;
+}
+.hx-bg-topo {
+  --hx-topo-c: oklch(from var(--hx-primary) l c h / 0.10);
+  background:
+    radial-gradient(ellipse 200px 100px at 20% 30%, transparent 38%, var(--hx-topo-c) 39%, var(--hx-topo-c) 40%, transparent 41%),
+    radial-gradient(ellipse 280px 140px at 70% 60%, transparent 38%, var(--hx-topo-c) 39%, var(--hx-topo-c) 40%, transparent 41%),
+    radial-gradient(ellipse 160px 80px at 40% 80%, transparent 38%, var(--hx-topo-c) 39%, var(--hx-topo-c) 40%, transparent 41%),
+    radial-gradient(ellipse 240px 120px at 90% 20%, transparent 38%, var(--hx-topo-c) 39%, var(--hx-topo-c) 40%, transparent 41%);
+}
+.hx-bg-isogrid {
+  --hx-iso-c: var(--hx-grid-line);
+  background-image:
+    linear-gradient(60deg, var(--hx-iso-c) 1px, transparent 1px),
+    linear-gradient(-60deg, var(--hx-iso-c) 1px, transparent 1px);
+  background-size: 24px 42px;
+}
+.hx-bg-mesh {
+  background:
+    radial-gradient(800px circle at 20% 0%, oklch(from var(--hx-primary) l c h / 0.18), transparent 50%),
+    radial-gradient(600px circle at 80% 100%, oklch(from var(--hx-accent-500) l c h / 0.10), transparent 50%);
+}
+
+/* ── Modern atmosphere patterns ────────────────────────────
+   These pair with hx-mood-* and bloom contexts. Each pattern
+   layers gracefully on top of bg tokens — they are lighting
+   treatments more than tilings, designed to give surfaces
+   depth without competing with content. */
+
+/* Aurora — slow vertical light wash. Two soft bands of brand
+   + accent that drift, evoking northern lights behind glass. */
+.hx-bg-aurora {
+  background:
+    radial-gradient(120% 60% at 30% 0%,   oklch(from var(--hx-primary) l c h / 0.22) 0%, transparent 55%),
+    radial-gradient(100% 70% at 80% 110%, oklch(from var(--hx-accent-500) l c h / 0.18) 0%, transparent 55%),
+    radial-gradient(80% 50% at 50% 50%,   oklch(from var(--hx-primary) l c h / 0.06) 0%, transparent 70%);
+}
+
+/* Halo — a centered radial spotlight with a soft ring. Reads
+   as a single point of focus; ideal under hero copy or empty
+   states. The double-stop ring gives it dimension. */
+.hx-bg-halo {
+  background:
+    radial-gradient(closest-side at 50% 45%,
+      oklch(from var(--hx-primary) l c h / 0.18) 0%,
+      oklch(from var(--hx-primary) l c h / 0.06) 35%,
+      transparent 65%),
+    radial-gradient(closest-side at 50% 45%,
+      transparent 58%,
+      oklch(from var(--hx-primary) l c h / 0.10) 60%,
+      transparent 62%);
+}
+
+/* Beam — a single conic light beam emerging from top-left.
+   Conic gradients give a real sense of directional light that
+   radial can't match. Dialed back so it never hijacks the eye. */
+.hx-bg-beam {
+  background:
+    conic-gradient(from 200deg at 18% -10%,
+      transparent 0deg,
+      oklch(from var(--hx-primary) l c h / 0.16) 30deg,
+      oklch(from var(--hx-accent-500) l c h / 0.10) 70deg,
+      transparent 110deg),
+    radial-gradient(120% 80% at 100% 100%,
+      oklch(from var(--hx-bg-2) l c h / 0.6) 0%, transparent 60%);
+}
+
+/* Prism — dichroic film. Tight conic with brand + accent +
+   a complement, masked low. Feels like light through coated
+   glass; pairs beautifully with hx-mood-glass. */
+.hx-bg-prism {
+  background:
+    conic-gradient(from 0deg at 60% 40%,
+      oklch(from var(--hx-primary) l c h / 0.14),
+      oklch(from var(--hx-accent-500) l c h / 0.12),
+      oklch(from var(--hx-info) l c h / 0.10),
+      oklch(from var(--hx-primary) l c h / 0.14));
+  filter: blur(0.2px);
+}
+
+/* Weave — diagonal moiré. Two repeating linears at offset
+   angles produce a quiet woven texture. Far more refined
+   than diag stripes; reads as material, not pattern. */
+.hx-bg-weave {
+  background-image:
+    repeating-linear-gradient( 30deg, var(--hx-grid-line) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-30deg, var(--hx-grid-line) 0 1px, transparent 1px 14px);
+}
+
+/* Scanline — fine horizontal banding for ambient depth.
+   Looks like CRT phosphor at low density; a calm texture
+   that disappears unless you look. */
+.hx-bg-scanline {
+  background-image: repeating-linear-gradient(
+    0deg,
+    oklch(from var(--hx-fg) l c h / 0.04) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* Orbit — concentric rings of alpha. Reads as radar / sonar
+   sweep; great for empty states and "scanning" surfaces. */
+.hx-bg-orbit {
+  --hx-orbit-c: oklch(from var(--hx-primary) l c h / 0.14);
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 23%, var(--hx-orbit-c) 23% 23.5%, transparent 23.5% 100%),
+    radial-gradient(circle at 50% 50%, transparent 0 38%, var(--hx-orbit-c) 38% 38.5%, transparent 38.5% 100%),
+    radial-gradient(circle at 50% 50%, transparent 0 55%, var(--hx-orbit-c) 55% 55.5%, transparent 55.5% 100%),
+    radial-gradient(circle at 50% 50%, transparent 0 74%, var(--hx-orbit-c) 74% 74.5%, transparent 74.5% 100%);
+}

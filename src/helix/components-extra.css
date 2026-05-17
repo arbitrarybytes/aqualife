@@ -1,0 +1,572 @@
+/* HELIX — Extra components
+   ──────────────────────────────────────────────────────────
+   Additional component classes layered on top of components.css.
+   Keep this file separate so brownfield adopters can opt in by
+   adding a single <link> tag, and so the original component
+   surface stays stable.
+
+   Coverage in this file:
+   - Page header (canonical product chrome)
+   - Data list (KV definition list)
+   - Linear meter (utilization)
+   - Radial gauge
+   - Avatar group / stack
+   - Tree view
+   - Diff view (line-by-line, gutter)
+   - Heatmap / activity calendar
+   - Command palette
+   ────────────────────────────────────────────────────────── */
+
+
+/* ── Page header ─────────────────────────────────────────── */
+/* Canonical "you are here" surface for any product page.
+   Eyebrow → title → meta row → actions, all in one block. */
+.hx-pageheader {
+  display: flex; flex-direction: column; gap: 0.625rem;
+  padding: 1.125rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--hx-line);
+  background: var(--hx-bg);
+}
+.hx-pageheader-eye {
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--hx-fg-faint);
+  display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.hx-pageheader-eye::before {
+  content: ''; width: 14px; height: 1px; background: var(--hx-line-strong);
+}
+.hx-pageheader-row {
+  display: flex; align-items: center; gap: 0.875rem;
+}
+.hx-pageheader-title {
+  font-size: 1.375rem; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--hx-fg);
+  margin: 0; line-height: 1.15;
+}
+.hx-pageheader-meta {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem; color: var(--hx-fg-muted);
+  letter-spacing: 0.02em;
+}
+.hx-pageheader-meta .sep { color: var(--hx-fg-faint); }
+.hx-pageheader-actions {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+
+/* ── Data list ───────────────────────────────────────────── */
+/* Definition-list pattern for resource detail panels: instance
+   ID, region, age, owner, etc. Two-column on wide, stacked on
+   narrow. Borders only between rows, not around the list. */
+.hx-dl {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) 1fr;
+  column-gap: 1.5rem; row-gap: 0;
+  font-size: 0.8125rem;
+}
+.hx-dl > dt,
+.hx-dl > dd { padding: 0.5rem 0; border-top: 1px solid var(--hx-line-soft); }
+.hx-dl > dt:first-of-type,
+.hx-dl > dd:first-of-type { border-top: 0; }
+.hx-dl > dt {
+  color: var(--hx-fg-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.hx-dl > dd {
+  color: var(--hx-fg);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+/* Compact variant for sidebars / popovers */
+.hx-dl-compact { font-size: 0.75rem; }
+.hx-dl-compact > dt,
+.hx-dl-compact > dd { padding: 0.3125rem 0; }
+/* Inline variant — single column, stacked, no borders */
+.hx-dl-stack {
+  grid-template-columns: 1fr;
+  row-gap: 0.625rem;
+}
+.hx-dl-stack > dt,
+.hx-dl-stack > dd { padding: 0; border: 0; }
+.hx-dl-stack > dt {
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--hx-fg-faint);
+}
+
+
+/* ── Linear meter ────────────────────────────────────────── */
+/* For utilization, quotas, capacity. Different from .hx-progress
+   in that it can carry a tone (ok/warn/err) and a label slot,
+   and renders thresholds. */
+.hx-meter {
+  display: flex; flex-direction: column; gap: 0.375rem;
+}
+.hx-meter-row {
+  display: flex; align-items: baseline; gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.hx-meter-label { color: var(--hx-fg-muted); }
+.hx-meter-value {
+  margin-left: auto;
+  font-family: var(--hx-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--hx-fg);
+}
+.hx-meter-track {
+  height: 6px; border-radius: var(--hx-radius-full);
+  background: var(--hx-bg-3);
+  overflow: hidden;
+  position: relative;
+}
+.hx-meter-fill {
+  height: 100%;
+  background: var(--hx-primary);
+  border-radius: inherit;
+  transition: width var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-meter[data-tone="ok"]    .hx-meter-fill { background: var(--hx-success); }
+.hx-meter[data-tone="warn"]  .hx-meter-fill { background: var(--hx-warning); }
+.hx-meter[data-tone="err"]   .hx-meter-fill { background: var(--hx-danger); }
+/* Threshold tick — pass --hx-meter-threshold:75% to mark a line. */
+.hx-meter-track::after {
+  content: '';
+  position: absolute; top: -2px; bottom: -2px;
+  left: var(--hx-meter-threshold, -1px);
+  width: 1px;
+  background: var(--hx-fg-faint);
+  opacity: var(--hx-meter-threshold-on, 0);
+}
+.hx-meter[style*="--hx-meter-threshold"] .hx-meter-track::after { opacity: 0.6; }
+/* Segmented variant — discrete cells, classic SRE quota look. */
+.hx-meter-segments {
+  display: flex; gap: 2px;
+  height: 8px;
+}
+.hx-meter-cell {
+  flex: 1;
+  background: var(--hx-bg-3);
+  border-radius: 1px;
+}
+.hx-meter-cell[data-on="true"]  { background: var(--hx-primary); }
+.hx-meter-cell[data-tone="ok"]   { background: var(--hx-success); }
+.hx-meter-cell[data-tone="warn"] { background: var(--hx-warning); }
+.hx-meter-cell[data-tone="err"]  { background: var(--hx-danger); }
+
+
+/* ── Radial gauge ────────────────────────────────────────── */
+/* Pure-CSS gauge driven by --hx-gauge-pct (0-100). Use for
+   single-metric callouts: error budget, p99 latency vs SLO,
+   capacity. The arc is a conic gradient masked into a ring. */
+.hx-gauge {
+  --hx-gauge-pct: 0;
+  --hx-gauge-size: 96px;
+  --hx-gauge-thickness: 8px;
+  --hx-gauge-color: var(--hx-primary);
+  width: var(--hx-gauge-size);
+  height: var(--hx-gauge-size);
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.hx-gauge::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--hx-gauge-color) calc(var(--hx-gauge-pct) * 1%),
+    var(--hx-bg-3) 0
+  );
+  -webkit-mask: radial-gradient(circle at center,
+    transparent calc(50% - var(--hx-gauge-thickness)),
+    black calc(50% - var(--hx-gauge-thickness) + 1px));
+  mask: radial-gradient(circle at center,
+    transparent calc(50% - var(--hx-gauge-thickness)),
+    black calc(50% - var(--hx-gauge-thickness) + 1px));
+  transition: background var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-gauge[data-tone="ok"]   { --hx-gauge-color: var(--hx-success); }
+.hx-gauge[data-tone="warn"] { --hx-gauge-color: var(--hx-warning); }
+.hx-gauge[data-tone="err"]  { --hx-gauge-color: var(--hx-danger); }
+.hx-gauge-value {
+  position: relative; z-index: 1;
+  font-family: var(--hx-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: calc(var(--hx-gauge-size) * 0.22);
+  font-weight: 600;
+  color: var(--hx-fg);
+  letter-spacing: -0.02em;
+  display: flex; align-items: baseline; gap: 1px;
+}
+.hx-gauge-unit {
+  font-size: calc(var(--hx-gauge-size) * 0.13);
+  color: var(--hx-fg-muted);
+  font-weight: 500;
+}
+.hx-gauge-label {
+  position: absolute; bottom: calc(var(--hx-gauge-size) * 0.18);
+  font-size: calc(var(--hx-gauge-size) * 0.10);
+  color: var(--hx-fg-faint);
+  letter-spacing: 0.04em; text-transform: uppercase;
+  font-family: var(--hx-font-mono);
+}
+/* Half-arc variant (180° / speedometer). Useful when only positive
+   range matters and you want to save vertical space. */
+.hx-gauge-half {
+  height: calc(var(--hx-gauge-size) * 0.6);
+  align-items: flex-end;
+}
+.hx-gauge-half::before {
+  background: conic-gradient(from 270deg,
+    var(--hx-gauge-color) calc(var(--hx-gauge-pct) * 0.5%),
+    var(--hx-bg-3) 0,
+    var(--hx-bg-3) 50%,
+    transparent 50%);
+}
+
+
+/* ── Avatar group / stack ────────────────────────────────── */
+/* Stacks of avatars with overlap. The +N pill picks up the same
+   ring/border so it reads as part of the group, not a separate
+   chip. */
+.hx-avatar-group {
+  display: inline-flex;
+  align-items: center;
+}
+.hx-avatar-group > .hx-avatar,
+.hx-avatar-group > .hx-avatar-more {
+  position: relative;
+  margin-left: -8px;
+  border: 2px solid var(--hx-bg);
+  background-clip: padding-box;
+  transition: transform var(--hx-dur-fast) var(--hx-ease-out),
+              z-index 0s 0s;
+}
+.hx-avatar-group > :first-child { margin-left: 0; }
+.hx-avatar-group > .hx-avatar:hover,
+.hx-avatar-group > .hx-avatar-more:hover {
+  transform: translateY(-1px);
+  z-index: 1;
+}
+.hx-avatar-group[data-on-bg="elev"] > .hx-avatar,
+.hx-avatar-group[data-on-bg="elev"] > .hx-avatar-more { border-color: var(--hx-bg-elev); }
+.hx-avatar-group[data-on-bg="bg-1"] > .hx-avatar,
+.hx-avatar-group[data-on-bg="bg-1"] > .hx-avatar-more { border-color: var(--hx-bg-1); }
+
+.hx-avatar-more {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem;
+  border-radius: 50%;
+  background: var(--hx-bg-2);
+  color: var(--hx-fg-muted);
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+/* Compact size variant — match sm avatars (24×24). */
+.hx-avatar-group-sm > .hx-avatar,
+.hx-avatar-group-sm > .hx-avatar-more {
+  width: 1.5rem; height: 1.5rem;
+  font-size: 0.625rem;
+  margin-left: -6px;
+}
+
+
+/* ── Tree view ──────────────────────────────────────────── */
+/* File / folder hierarchy. Indent via padding, not margin, so
+   the hover fill spans the full row. The chevron rotates on
+   data-open and the connector lines are drawn with a left
+   gradient to imply depth without hard lines. */
+.hx-tree {
+  font-size: 0.8125rem;
+  font-family: var(--hx-font-mono);
+  color: var(--hx-fg);
+  user-select: none;
+}
+.hx-tree-node {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.25rem 0.5rem 0.25rem calc(0.5rem + var(--hx-tree-depth, 0) * 14px);
+  border-radius: var(--hx-radius-sm);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--hx-dur-fast) var(--hx-ease-out);
+  white-space: nowrap;
+}
+.hx-tree-node:hover { background: var(--hx-bg-2); }
+.hx-tree-node[aria-selected="true"] {
+  background: oklch(from var(--hx-primary) l c h / 0.12);
+  color: var(--hx-fg);
+}
+.hx-tree-node[aria-selected="true"]::before {
+  content: ''; position: absolute;
+  left: 2px; top: 6px; bottom: 6px;
+  width: 2px; border-radius: 2px;
+  background: var(--hx-primary);
+}
+.hx-tree-chev {
+  width: 12px; height: 12px;
+  flex-shrink: 0;
+  color: var(--hx-fg-faint);
+  transition: transform var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-tree-node[data-leaf="true"] .hx-tree-chev { visibility: hidden; }
+.hx-tree-node[data-open="true"] > .hx-tree-chev { transform: rotate(90deg); }
+.hx-tree-icon {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  color: var(--hx-fg-muted);
+}
+.hx-tree-node[aria-selected="true"] .hx-tree-icon { color: var(--hx-primary); }
+.hx-tree-label { color: inherit; }
+.hx-tree-meta {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--hx-fg-faint);
+}
+/* Indentation guides — vertical 1px lines inside the indent area,
+   one per depth step. Drawn via a repeating-linear-gradient on the
+   row's left padding so they stay perfectly aligned. */
+.hx-tree-rails .hx-tree-node {
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent 13px,
+    var(--hx-line-soft) 13px,
+    var(--hx-line-soft) 14px,
+    transparent 14px,
+    transparent 28px
+  );
+  background-size: calc(var(--hx-tree-depth, 0) * 14px) 100%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+
+
+/* ── Diff view ──────────────────────────────────────────── */
+/* Line-by-line diff. The gutter holds the line numbers (old / new)
+   and a glyph (+/−/·) indicating the line's role. Backgrounds tint
+   the row, never the gutter, so line numbers stay crisp. */
+.hx-diff {
+  font-family: var(--hx-font-mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  background: var(--hx-bg);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  overflow: hidden;
+  display: grid;
+  /* old line · new line · sign · code */
+  grid-template-columns: max-content max-content max-content 1fr;
+}
+.hx-diff-row {
+  display: contents;
+}
+.hx-diff-row > * {
+  padding: 0.0625rem 0.625rem;
+  white-space: pre;
+}
+.hx-diff-row > .hx-diff-num {
+  text-align: right;
+  color: var(--hx-fg-faint);
+  background: var(--hx-bg-1);
+  border-right: 1px solid var(--hx-line-soft);
+  user-select: none;
+  min-width: 2.5em;
+  font-variant-numeric: tabular-nums;
+}
+.hx-diff-row > .hx-diff-sign {
+  width: 1.5em;
+  text-align: center;
+  color: var(--hx-fg-faint);
+  user-select: none;
+}
+.hx-diff-row > .hx-diff-code {
+  color: var(--hx-fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Add / remove tints — applied to all four cells in the row.
+   Using inline tint on each cell (rather than the row) preserves
+   grid layout while still tinting the gutter slightly. */
+.hx-diff-row[data-kind="add"] > * { background: oklch(from var(--hx-success) l c h / 0.10); }
+.hx-diff-row[data-kind="add"] > .hx-diff-num  { background: oklch(from var(--hx-success) l c h / 0.18); color: var(--hx-success); }
+.hx-diff-row[data-kind="add"] > .hx-diff-sign { color: var(--hx-success); }
+.hx-diff-row[data-kind="del"] > * { background: oklch(from var(--hx-danger) l c h / 0.10); }
+.hx-diff-row[data-kind="del"] > .hx-diff-num  { background: oklch(from var(--hx-danger) l c h / 0.18); color: var(--hx-danger); }
+.hx-diff-row[data-kind="del"] > .hx-diff-sign { color: var(--hx-danger); }
+.hx-diff-row[data-kind="hunk"] > * {
+  background: var(--hx-bg-1);
+  color: var(--hx-fg-muted);
+  font-style: italic;
+  border-top: 1px solid var(--hx-line-soft);
+  border-bottom: 1px solid var(--hx-line-soft);
+}
+/* Inline word-level highlight inside an add/del row */
+.hx-diff-mark-add { background: oklch(from var(--hx-success) l c h / 0.32); border-radius: 2px; }
+.hx-diff-mark-del { background: oklch(from var(--hx-danger) l c h / 0.32); border-radius: 2px; }
+
+
+/* ── Heatmap / activity calendar ─────────────────────────── */
+/* GitHub-style activity grid. Cells size themselves by container
+   via grid-auto rather than fixed pixels, so the surface scales.
+   Levels 0-4 mapped to brand alpha — passes through any theme. */
+.hx-heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+  --hx-heat-size: 11px;
+}
+.hx-heat-cell {
+  width: var(--hx-heat-size);
+  height: var(--hx-heat-size);
+  border-radius: 2px;
+  background: var(--hx-bg-2);
+  border: 1px solid oklch(from var(--hx-fg) l c h / 0.04);
+  transition: transform var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-heat-cell[data-level="1"] { background: oklch(from var(--hx-primary) l c h / 0.20); border-color: oklch(from var(--hx-primary) l c h / 0.25); }
+.hx-heat-cell[data-level="2"] { background: oklch(from var(--hx-primary) l c h / 0.40); border-color: oklch(from var(--hx-primary) l c h / 0.45); }
+.hx-heat-cell[data-level="3"] { background: oklch(from var(--hx-primary) l c h / 0.65); border-color: oklch(from var(--hx-primary) l c h / 0.70); }
+.hx-heat-cell[data-level="4"] { background: var(--hx-primary); border-color: oklch(from var(--hx-primary) calc(l + 0.10) c h); }
+.hx-heat-cell:hover { transform: scale(1.25); z-index: 1; position: relative; }
+.hx-heatmap-legend {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-faint);
+}
+.hx-heatmap-legend .hx-heat-cell { width: 10px; height: 10px; }
+/* Tone variants — recolor the whole map. */
+.hx-heatmap[data-tone="success"] .hx-heat-cell[data-level="1"] { background: oklch(from var(--hx-success) l c h / 0.20); border-color: oklch(from var(--hx-success) l c h / 0.25); }
+.hx-heatmap[data-tone="success"] .hx-heat-cell[data-level="2"] { background: oklch(from var(--hx-success) l c h / 0.40); border-color: oklch(from var(--hx-success) l c h / 0.45); }
+.hx-heatmap[data-tone="success"] .hx-heat-cell[data-level="3"] { background: oklch(from var(--hx-success) l c h / 0.65); border-color: oklch(from var(--hx-success) l c h / 0.70); }
+.hx-heatmap[data-tone="success"] .hx-heat-cell[data-level="4"] { background: var(--hx-success); border-color: oklch(from var(--hx-success) calc(l + 0.10) c h); }
+.hx-heatmap[data-tone="danger"] .hx-heat-cell[data-level="1"] { background: oklch(from var(--hx-danger) l c h / 0.22); border-color: oklch(from var(--hx-danger) l c h / 0.25); }
+.hx-heatmap[data-tone="danger"] .hx-heat-cell[data-level="2"] { background: oklch(from var(--hx-danger) l c h / 0.42); border-color: oklch(from var(--hx-danger) l c h / 0.45); }
+.hx-heatmap[data-tone="danger"] .hx-heat-cell[data-level="3"] { background: oklch(from var(--hx-danger) l c h / 0.66); border-color: oklch(from var(--hx-danger) l c h / 0.70); }
+.hx-heatmap[data-tone="danger"] .hx-heat-cell[data-level="4"] { background: var(--hx-danger); border-color: oklch(from var(--hx-danger) calc(l + 0.10) c h); }
+
+
+/* ── Command palette ────────────────────────────────────── */
+/* The Spotlight / cmdk surface. A rounded card with an input row,
+   a scrollable result list, and a footer hint row. Items have
+   leading icons, label, optional kbd shortcut. Headings break
+   the list into sections. */
+.hx-cmdk {
+  width: 560px;
+  max-width: 90vw;
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-shadow-lg);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  font-family: var(--hx-font-sans);
+}
+.hx-cmdk-input-row {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--hx-line);
+}
+.hx-cmdk-input-row > svg {
+  width: 16px; height: 16px;
+  color: var(--hx-fg-faint);
+  flex-shrink: 0;
+}
+.hx-cmdk-input {
+  flex: 1; min-width: 0;
+  background: transparent; border: 0; outline: 0;
+  color: var(--hx-fg);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+.hx-cmdk-input::placeholder { color: var(--hx-fg-faint); }
+.hx-cmdk-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0.375rem;
+}
+.hx-cmdk-heading {
+  font-family: var(--hx-font-mono);
+  font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--hx-fg-faint);
+  padding: 0.625rem 0.625rem 0.25rem;
+}
+.hx-cmdk-item {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.4375rem 0.625rem;
+  border-radius: var(--hx-radius-sm);
+  font-size: 0.8125rem; color: var(--hx-fg);
+  cursor: pointer;
+  transition: background var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-cmdk-item:hover,
+.hx-cmdk-item[data-highlighted="true"] {
+  background: oklch(from var(--hx-primary) l c h / 0.12);
+}
+.hx-cmdk-item-icon {
+  width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--hx-bg-2);
+  border-radius: var(--hx-radius-xs);
+  color: var(--hx-fg-muted);
+  flex-shrink: 0;
+}
+.hx-cmdk-item:hover .hx-cmdk-item-icon,
+.hx-cmdk-item[data-highlighted="true"] .hx-cmdk-item-icon {
+  background: oklch(from var(--hx-primary) l c h / 0.18);
+  color: var(--hx-primary);
+}
+.hx-cmdk-item-icon > svg { width: 11px; height: 11px; }
+.hx-cmdk-item-label {
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hx-cmdk-item-hint {
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem; color: var(--hx-fg-faint);
+  letter-spacing: 0.02em;
+}
+.hx-cmdk-item-kbd {
+  font-family: var(--hx-font-mono);
+  font-size: 0.625rem;
+  color: var(--hx-fg-muted);
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line-soft);
+  border-radius: var(--hx-radius-xs);
+  padding: 1px 5px;
+}
+.hx-cmdk-footer {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 0.4375rem 0.875rem;
+  border-top: 1px solid var(--hx-line);
+  background: var(--hx-bg-1);
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem;
+  color: var(--hx-fg-faint);
+}
+.hx-cmdk-footer-key {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+}
+.hx-cmdk-footer-key kbd {
+  font-family: inherit;
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line-soft);
+  border-radius: 3px;
+  padding: 0 4px;
+  color: var(--hx-fg-muted);
+}
+.hx-cmdk-empty {
+  padding: 2.25rem 1rem;
+  text-align: center;
+  color: var(--hx-fg-muted);
+  font-size: 0.8125rem;
+}

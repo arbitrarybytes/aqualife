@@ -1,0 +1,3195 @@
+/* ============================================================
+   HELIX — Semantic Component Classes
+   Layered on top of Tailwind utilities. Use for repeated patterns.
+   ============================================================ */
+
+/* ──────────────────────────────────────────────────────────
+   BASE
+   ────────────────────────────────────────────────────────── */
+* { border-color: var(--hx-line); }
+html, body {
+  background: var(--hx-bg);
+  color: var(--hx-fg);
+  font-family: var(--hx-font-sans);
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--hx-primary-soft); color: var(--hx-fg); }
+.hx-mono { font-family: var(--hx-font-mono); font-feature-settings: normal; }
+
+/* Focus ring */
+.hx-focus:focus-visible,
+.hx-btn:focus-visible,
+.hx-input:focus-visible,
+.hx-select:focus-visible,
+.hx-textarea:focus-visible {
+  outline: 2px solid var(--hx-ring);
+  outline-offset: 2px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   BUTTONS
+   ────────────────────────────────────────────────────────── */
+.hx-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem; font-weight: 500;
+  letter-spacing: -0.005em;
+  border-radius: var(--hx-radius-md);
+  border: 1px solid transparent;
+  background: transparent; color: var(--hx-fg);
+  cursor: pointer; user-select: none;
+  transform: translateZ(0);            /* establish transform layer to prevent first-hover jitter */
+  will-change: transform;
+  transition: background var(--hx-dur-base) var(--hx-ease-out),
+              color var(--hx-dur-base) var(--hx-ease-out),
+              border-color var(--hx-dur-base) var(--hx-ease-out),
+              transform var(--hx-dur-fast) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out);
+  white-space: nowrap;
+}
+.hx-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+  transition: transform 90ms var(--hx-ease-out),
+              background var(--hx-dur-fast) var(--hx-ease-out),
+              box-shadow var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+
+/* Primary button — hover is an opacity fade of an overlay layer rather than
+   a color-to-color transition. Color interpolation between two oklch primaries
+   goes via sRGB and can flash near-white at the midpoint; opacity can't.    */
+.hx-btn-primary {
+  position: relative;
+  isolation: isolate;
+  background: var(--hx-primary);
+  color: var(--hx-fg-on-brand);
+  border-color: var(--hx-primary);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.15),
+              0 1px 2px oklch(0 0 0 / 0.3),
+              0 0 0 0 oklch(from var(--hx-primary) l c h / 0);
+}
+.hx-btn-primary::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: inherit;
+  background: var(--hx-primary-hover);
+  opacity: 0;
+  transition: opacity var(--hx-dur-base) var(--hx-ease-out);
+  pointer-events: none;
+  z-index: -1;            /* sit BEHIND the button's text/icon content */
+}
+.hx-btn-primary:hover:not(:disabled)::before { opacity: 1; }
+.hx-btn-primary:hover:not(:disabled) {
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.2),
+              0 1px 2px oklch(0 0 0 / 0.3),
+              0 4px 14px -4px var(--hx-primary);
+}
+
+.hx-btn-secondary {
+  background: var(--hx-bg-2); color: var(--hx-fg);
+  border-color: var(--hx-line);
+}
+.hx-btn-secondary:hover:not(:disabled) {
+  background: var(--hx-bg-3); border-color: var(--hx-line-strong);
+}
+
+.hx-btn-ghost { color: var(--hx-fg-muted); }
+.hx-btn-ghost:hover:not(:disabled) { background: var(--hx-bg-2); color: var(--hx-fg); }
+
+.hx-btn-outline {
+  border-color: var(--hx-line-strong); color: var(--hx-fg);
+}
+.hx-btn-outline:hover:not(:disabled) {
+  background: var(--hx-bg-1); border-color: var(--hx-fg-faint);
+}
+
+.hx-btn-danger {
+  background: var(--hx-danger); color: white;
+  border-color: var(--hx-danger);
+}
+.hx-btn-danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 14px -4px var(--hx-danger);
+}
+
+.hx-btn-sm { padding: 0.3125rem 0.625rem; font-size: 0.8125rem; border-radius: var(--hx-radius-sm); }
+.hx-btn-lg { padding: 0.75rem 1.25rem; font-size: 0.9375rem; border-radius: var(--hx-radius-lg); }
+.hx-btn-icon { padding: 0.5rem; }
+.hx-btn-icon.hx-btn-sm { padding: 0.375rem; }
+.hx-btn-icon.hx-btn-lg { padding: 0.75rem; }
+
+/* Icon glyphs inside buttons. Anything that's first or last child gets the
+   asymmetric padding treatment so the icon's own bounding box doesn't push
+   the visual edge out. Icons size themselves by font-size (1em) so sm/lg
+   buttons scale their icons too. */
+.hx-btn > svg,
+.hx-btn > .hx-icon,
+.hx-btn > [data-icon] {
+  width: 1em; height: 1em;
+  flex-shrink: 0;
+  /* Optical correction — icons read slightly larger than their bbox at the
+     baseline of sans text, so nudge them down 0.5px to align with cap-height. */
+  transform: translateY(0.5px);
+}
+
+/* Leading icon: trim the left padding (icon already has visual weight on
+   that side). 0.875 → 0.625 default; 0.625 → 0.4375 sm; 1.25 → 0.875 lg. */
+.hx-btn:has(> svg:first-child),
+.hx-btn:has(> .hx-icon:first-child),
+.hx-btn:has(> [data-icon]:first-child) { padding-left: 0.625rem; }
+.hx-btn-sm:has(> svg:first-child),
+.hx-btn-sm:has(> .hx-icon:first-child),
+.hx-btn-sm:has(> [data-icon]:first-child) { padding-left: 0.4375rem; }
+.hx-btn-lg:has(> svg:first-child),
+.hx-btn-lg:has(> .hx-icon:first-child),
+.hx-btn-lg:has(> [data-icon]:first-child) { padding-left: 0.875rem; }
+
+/* Trailing icon: same trim on the right. Note we exclude .hx-kbd shortcuts
+   (those want the full padding so the keycap doesn't kiss the edge). */
+.hx-btn:has(> svg:last-child),
+.hx-btn:has(> .hx-icon:last-child),
+.hx-btn:has(> [data-icon]:last-child) { padding-right: 0.625rem; }
+.hx-btn-sm:has(> svg:last-child),
+.hx-btn-sm:has(> .hx-icon:last-child),
+.hx-btn-sm:has(> [data-icon]:last-child) { padding-right: 0.4375rem; }
+.hx-btn-lg:has(> svg:last-child),
+.hx-btn-lg:has(> .hx-icon:last-child),
+.hx-btn-lg:has(> [data-icon]:last-child) { padding-right: 0.875rem; }
+
+/* Icon-only buttons (.hx-btn-icon) get a square aspect from equal padding,
+   handled above. Override the asymmetric trim so they stay square. */
+.hx-btn-icon { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+.hx-btn-icon.hx-btn-sm { padding-left: 0.375rem !important; padding-right: 0.375rem !important; }
+.hx-btn-icon.hx-btn-lg { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+
+/* ──────────────────────────────────────────────────────────
+   BADGES
+   ────────────────────────────────────────────────────────── */
+.hx-badge {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem; font-weight: 500;
+  letter-spacing: 0.005em;
+  border-radius: var(--hx-radius-full);
+  border: 1px solid var(--hx-line);
+  background: var(--hx-bg-1); color: var(--hx-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hx-badge-solid { background: var(--hx-bg-3); color: var(--hx-fg); border-color: transparent; }
+.hx-badge-brand { background: var(--hx-primary-soft); color: var(--hx-brand-300); border-color: oklch(from var(--hx-primary) l c h / 0.3); }
+.hx-badge-success { background: var(--hx-success-bg); color: var(--hx-success); border-color: oklch(from var(--hx-success) l c h / 0.3); }
+.hx-badge-warning { background: var(--hx-warning-bg); color: var(--hx-warning); border-color: oklch(from var(--hx-warning) l c h / 0.3); }
+.hx-badge-danger  { background: var(--hx-danger-bg);  color: var(--hx-danger);  border-color: oklch(from var(--hx-danger) l c h / 0.3); }
+.hx-badge-info    { background: var(--hx-info-bg);    color: var(--hx-info);    border-color: oklch(from var(--hx-info) l c h / 0.3); }
+
+/* Light-mode badge refinement — darker, more saturated text on the soft tinted bg
+   so the chips read as crisp pills rather than washed pastels. */
+.hx-light .hx-badge-brand   { color: oklch(0.40 0.16 240); border-color: oklch(0.50 0.18 240 / 0.28); }
+.hx-light .hx-badge-success { color: oklch(0.42 0.14 158); border-color: oklch(0.55 0.16 158 / 0.32); }
+.hx-light .hx-badge-warning { color: oklch(0.46 0.13 75);  border-color: oklch(0.62 0.14 75  / 0.32); }
+.hx-light .hx-badge-danger  { color: oklch(0.46 0.18 22);  border-color: oklch(0.55 0.20 22  / 0.32); }
+.hx-light .hx-badge-info    { color: oklch(0.42 0.14 240); border-color: oklch(0.50 0.16 240 / 0.32); }
+.hx-light .hx-badge { box-shadow: 0 1px 0 0 oklch(0.20 0.02 255 / 0.025); }
+
+.hx-badge-dot::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Pulse for live status */
+.hx-pulse { position: relative; }
+.hx-pulse::after {
+  content: ''; position: absolute; inset: -2px;
+  border-radius: inherit;
+  border: 2px solid currentColor;
+  animation: hx-pulse 1.6s var(--hx-ease-out) infinite;
+  opacity: 0;
+}
+@keyframes hx-pulse {
+  0% { opacity: 0.6; transform: scale(0.85); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
+/* ──────────────────────────────────────────────────────────
+   CARDS / SURFACES
+   ────────────────────────────────────────────────────────── */
+.hx-card {
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  position: relative;
+}
+.hx-card-hover { transition: transform var(--hx-dur-base) var(--hx-ease-out), border-color var(--hx-dur-base) var(--hx-ease-out), box-shadow var(--hx-dur-base) var(--hx-ease-out); }
+.hx-card-hover:hover { border-color: var(--hx-line-strong); box-shadow: var(--hx-shadow-md); transform: translateY(-1px); }
+
+.hx-card-glow::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: inherit; pointer-events: none;
+  background: radial-gradient(800px circle at var(--mx, 50%) var(--my, 0%), oklch(from var(--hx-primary) l c h / 0.10), transparent 40%);
+  opacity: 0; transition: opacity var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-card-glow:hover::before { opacity: 1; }
+
+/* ── Card slots ───────────────────────────────────────────
+   Header / body / footer with consistent padding + dividers.
+   The card itself owns no padding so slots compose freely.       */
+.hx-card-header,
+.hx-card-footer {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 0.875rem 1.125rem;
+  min-height: 48px;
+}
+.hx-card-header { border-bottom: 1px solid var(--hx-line-soft); }
+.hx-card-footer { border-top: 1px solid var(--hx-line-soft); }
+.hx-card-header-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.hx-card-title    { font-size: 0.875rem; font-weight: 500; letter-spacing: -0.005em; color: var(--hx-fg); }
+.hx-card-subtitle { font-size: 0.75rem;  color: var(--hx-fg-subtle); line-height: 1.4; }
+.hx-card-actions  { display: flex; align-items: center; gap: 0.375rem; flex-shrink: 0; }
+.hx-card-icon {
+  width: 32px; height: 32px; border-radius: var(--hx-radius-md);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: oklch(from var(--hx-primary) l c h / 0.12);
+  color: var(--hx-primary);
+  flex-shrink: 0;
+}
+.hx-card-body { padding: 1.125rem; }
+.hx-card-body-tight { padding: 0.75rem; }
+.hx-card-body-loose { padding: 1.5rem; }
+/* Cover / media-first card */
+.hx-card-cover {
+  position: relative; aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, var(--hx-bg-2), var(--hx-bg-3));
+  border-bottom: 1px solid var(--hx-line-soft);
+  border-radius: var(--hx-radius-lg) var(--hx-radius-lg) 0 0;
+  overflow: hidden;
+}
+.hx-card-cover img { width: 100%; height: 100%; object-fit: cover; }
+.hx-card-cover-tint {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, oklch(0 0 0 / 0.55));
+}
+.hx-card-cover-label {
+  position: absolute; left: 0.875rem; bottom: 0.75rem; right: 0.875rem;
+  color: white; font-size: 0.875rem; font-weight: 500;
+  text-shadow: 0 1px 2px oklch(0 0 0 / 0.4);
+}
+
+/* ── Card motion presets ──────────────────────────────────
+   .hx-card-lift       — subtle lift + soft shadow (default refined hover)
+   .hx-card-rise       — bigger lift, stronger shadow (marketing/hero)
+   .hx-card-spotlight  — pointer-tracked highlight (uses --mx/--my vars set by JS)
+   .hx-card-sheen      — diagonal sheen sweeps across on hover
+   .hx-card-magnet     — primary border, ring tightens on hover                */
+.hx-card-lift {
+  transition: transform var(--hx-dur-base) var(--hx-ease-out),
+              border-color var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-card-lift:hover {
+  border-color: var(--hx-line-strong);
+  box-shadow: var(--hx-shadow-md);
+  transform: translateY(-1px);
+}
+
+.hx-card-rise {
+  transition: transform var(--hx-dur-slow) var(--hx-ease-out),
+              border-color var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-card-rise:hover {
+  border-color: oklch(from var(--hx-primary) l c h / 0.55);
+  box-shadow: 0 12px 36px -12px oklch(from var(--hx-primary) l c h / 0.30),
+              0 4px 12px -2px oklch(0 0 0 / 0.18);
+  transform: translateY(-3px);
+}
+
+.hx-card-spotlight {
+  position: relative; overflow: hidden;
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-card-spotlight::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%),
+              oklch(from var(--hx-primary) l c h / 0.18), transparent 45%);
+  opacity: 0;
+  transition: opacity var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-card-spotlight:hover { border-color: var(--hx-line-strong); }
+.hx-card-spotlight:hover::before { opacity: 1; }
+
+.hx-card-sheen { position: relative; overflow: hidden; transition: border-color var(--hx-dur-base); }
+.hx-card-sheen::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%,
+              oklch(from var(--hx-primary) 0.95 0.05 h / 0.18) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 900ms var(--hx-ease-out);
+}
+.hx-card-sheen:hover { border-color: var(--hx-line-strong); }
+.hx-card-sheen:hover::after { transform: translateX(100%); }
+
+.hx-card-magnet { transition: border-color var(--hx-dur-base), box-shadow var(--hx-dur-base); }
+.hx-card-magnet:hover {
+  border-color: oklch(from var(--hx-primary) l c h / 0.6);
+  box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.15);
+}
+
+/* ── .hx-card-topglow — gradient hairline ignites along the top edge on hover.
+   Uses a pseudo-element drawn ABOVE the border (z-index 1) so the line reads
+   as light-on-card rather than as a thicker border. The accent color comes
+   from --topglow-color (default --hx-primary) so callers can theme each card.
+   Pair with overflow:hidden cards by setting --topglow-inset to push the line
+   away from the corner radius if needed. */
+.hx-card-topglow {
+  position: relative;
+  --topglow-color: var(--hx-primary);
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-card-topglow::before {
+  content: ''; position: absolute;
+  top: -1px; left: 8%; right: 8%; height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    oklch(from var(--topglow-color) l c h / 0.10) 20%,
+    oklch(from var(--topglow-color) l c h / 0.85) 50%,
+    oklch(from var(--topglow-color) l c h / 0.10) 80%,
+    transparent 100%);
+  opacity: 0;
+  transition: opacity var(--hx-dur-slow) var(--hx-ease-out),
+              left var(--hx-dur-slow) var(--hx-ease-out),
+              right var(--hx-dur-slow) var(--hx-ease-out);
+  pointer-events: none;
+  z-index: 2;
+}
+/* The bloom — a soft halo behind the line, sits below content (z-index 0) */
+.hx-card-topglow::after {
+  content: ''; position: absolute;
+  top: -8px; left: 0; right: 0; height: 24px;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%,
+    oklch(from var(--topglow-color) l c h / 0.18),
+    transparent 70%);
+  opacity: 0;
+  transition: opacity var(--hx-dur-slow) var(--hx-ease-out);
+  pointer-events: none;
+  z-index: 0;
+}
+.hx-card-topglow:hover {
+  border-color: oklch(from var(--topglow-color) l c h / 0.35);
+}
+.hx-card-topglow:hover::before { opacity: 1; left: 0%; right: 0%; }
+.hx-card-topglow:hover::after  { opacity: 1; }
+
+/* ── .hx-card-atmosphere — a directional color wash blooms across the card
+   on hover. Default direction is right-to-left (most natural for cards in a
+   left-aligned grid where you mouse in from the right edge of the previous
+   card). Add .hx-card-atmosphere-rev to flip. The wash is colored by the
+   same --topglow-color custom prop for theming. Critically the wash sits
+   BEHIND content via z-index, so text remains crisp and readable. */
+.hx-card-atmosphere {
+  position: relative; isolation: isolate; overflow: hidden;
+  --topglow-color: var(--hx-primary);
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              transform var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-card-atmosphere::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 120% at 100% 50%,
+      oklch(from var(--topglow-color) l c h / 0.22) 0%,
+      oklch(from var(--topglow-color) l c h / 0.08) 35%,
+      transparent 70%);
+  opacity: 0;
+  transition: opacity var(--hx-dur-slow) var(--hx-ease-out),
+              transform var(--hx-dur-slow) var(--hx-ease-out);
+  pointer-events: none;
+  z-index: -1;
+}
+.hx-card-atmosphere.hx-card-atmosphere-rev::before {
+  background:
+    radial-gradient(ellipse 80% 120% at 0% 50%,
+      oklch(from var(--topglow-color) l c h / 0.22) 0%,
+      oklch(from var(--topglow-color) l c h / 0.08) 35%,
+      transparent 70%);
+}
+.hx-card-atmosphere:hover {
+  border-color: oklch(from var(--topglow-color) l c h / 0.30);
+}
+.hx-card-atmosphere:hover::before { opacity: 1; }
+
+/* ── .hx-card-header-glow — an opt-in subtle wash inside the card HEADER
+   (not the whole card). Pairs nicely with .hx-card-header. Provides a
+   permanent (not hover-only) atmosphere strip across the top of the card,
+   making headers a more visually engaging surface. */
+.hx-card-header-glow {
+  --topglow-color: var(--hx-primary);
+  background:
+    linear-gradient(180deg,
+      oklch(from var(--topglow-color) l c h / 0.06) 0%,
+      transparent 100%),
+    radial-gradient(ellipse 70% 140% at 100% 0%,
+      oklch(from var(--topglow-color) l c h / 0.10) 0%,
+      transparent 60%);
+  border-bottom: 1px solid oklch(from var(--topglow-color) l c h / 0.18);
+  position: relative;
+}
+/* Hairline accent at the very top of the header — like a chapter mark */
+.hx-card-header-glow::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    oklch(from var(--topglow-color) l c h / 0.55) 50%,
+    transparent);
+}
+
+/* ── Tone variants — accent the surface, not the slots                       */
+.hx-card-tone-primary { background: oklch(from var(--hx-primary) l c h / 0.06); border-color: oklch(from var(--hx-primary) l c h / 0.30); }
+.hx-card-tone-success { background: var(--hx-success-bg); border-color: oklch(from var(--hx-success) l c h / 0.30); }
+.hx-card-tone-warning { background: var(--hx-warning-bg); border-color: oklch(from var(--hx-warning) l c h / 0.30); }
+.hx-card-tone-danger  { background: var(--hx-danger-bg);  border-color: oklch(from var(--hx-danger)  l c h / 0.30); }
+.hx-card-tone-info    { background: var(--hx-info-bg);    border-color: oklch(from var(--hx-info)    l c h / 0.30); }
+
+/* Atmosphere reach: textures should kiss components, not just body */
+body[data-texture="blueprint"] .hx-sidebar,
+body[data-texture="blueprint"] .hx-navbar,
+body[data-texture="blueprint"] .hx-statusbar {
+  background-image: linear-gradient(to right, oklch(from var(--hx-primary) l c h / 0.05) 1px, transparent 1px), linear-gradient(to bottom, oklch(from var(--hx-primary) l c h / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+body[data-texture="scanlines"] .hx-sidebar,
+body[data-texture="scanlines"] .hx-navbar,
+body[data-texture="scanlines"] .hx-statusbar {
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 2px, oklch(0 0 0 / 0.10) 2px, oklch(0 0 0 / 0.10) 3px);
+}
+
+.hx-divider { height: 1px; background: var(--hx-line); border: 0; }
+.hx-divider-vertical { width: 1px; background: var(--hx-line); border: 0; }
+
+/* ──────────────────────────────────────────────────────────
+   FORMS
+   ────────────────────────────────────────────────────────── */
+.hx-label {
+  display: block; font-size: 0.8125rem; font-weight: 500;
+  color: var(--hx-fg); margin-bottom: 0.375rem;
+  letter-spacing: -0.005em;
+}
+.hx-help { font-size: 0.75rem; color: var(--hx-fg-subtle); margin-top: 0.375rem; }
+.hx-help-error { color: var(--hx-danger); }
+
+.hx-input, .hx-select, .hx-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--hx-fg);
+  background: var(--hx-bg-1);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              background var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-input::placeholder, .hx-textarea::placeholder { color: var(--hx-fg-faint); }
+.hx-input:hover, .hx-select:hover, .hx-textarea:hover { border-color: var(--hx-line-strong); }
+.hx-input:focus, .hx-select:focus, .hx-textarea:focus {
+  outline: none; border-color: var(--hx-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.18);
+  background-color: var(--hx-bg); /* background-color only — preserves background-image (select chevron) */
+}
+.hx-input.hx-invalid, .hx-textarea.hx-invalid { border-color: var(--hx-danger); }
+.hx-input.hx-invalid:focus { box-shadow: 0 0 0 3px oklch(from var(--hx-danger) l c h / 0.2); }
+
+.hx-input-group { position: relative; display: flex; align-items: center; }
+.hx-input-group .hx-input { padding-left: 2.25rem; }
+.hx-input-group > svg:first-child {
+  position: absolute; left: 0.625rem;
+  width: 1rem; height: 1rem;
+  color: var(--hx-fg-faint); pointer-events: none;
+}
+
+/* Checkbox */
+.hx-checkbox {
+  appearance: none;
+  width: 1.05rem; height: 1.05rem;
+  border: 1px solid var(--hx-line-strong);
+  border-radius: var(--hx-radius-xs);
+  background: var(--hx-bg-1);
+  cursor: pointer; position: relative;
+  transition: background var(--hx-dur-fast) var(--hx-ease-out), border-color var(--hx-dur-fast) var(--hx-ease-out);
+  flex-shrink: 0;
+}
+.hx-checkbox:hover { border-color: var(--hx-fg-faint); }
+.hx-checkbox:checked { background: var(--hx-primary); border-color: var(--hx-primary); }
+.hx-checkbox:checked::after {
+  content: ''; position: absolute; left: 4px; top: 1px;
+  width: 5px; height: 9px;
+  border: solid white; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Radio */
+.hx-radio {
+  appearance: none;
+  width: 1.05rem; height: 1.05rem;
+  border: 1px solid var(--hx-line-strong);
+  border-radius: 50%;
+  background: var(--hx-bg-1);
+  cursor: pointer; position: relative;
+  transition: border-color var(--hx-dur-fast) var(--hx-ease-out);
+  flex-shrink: 0;
+}
+.hx-radio:checked { border-color: var(--hx-primary); border-width: 5px; }
+
+/* Switch */
+.hx-switch {
+  appearance: none;
+  width: 2.25rem; height: 1.25rem;
+  background: var(--hx-bg-3);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-full);
+  position: relative; cursor: pointer;
+  transition: background var(--hx-dur-base) var(--hx-ease-out);
+  flex-shrink: 0;
+}
+.hx-switch::after {
+  content: ''; position: absolute; top: 1px; left: 1px;
+  width: calc(1.25rem - 4px); height: calc(1.25rem - 4px);
+  background: var(--hx-fg-muted); border-radius: 50%;
+  transition: transform var(--hx-dur-base) var(--hx-ease-spring), background var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-switch:checked { background: var(--hx-primary); border-color: var(--hx-primary); }
+.hx-switch:checked::after { transform: translateX(1rem); background: white; }
+
+/* Slider */
+.hx-slider {
+  appearance: none; width: 100%; height: 4px;
+  background: var(--hx-bg-3); border-radius: var(--hx-radius-full);
+  outline: none;
+}
+.hx-slider::-webkit-slider-thumb {
+  appearance: none; width: 16px; height: 16px;
+  background: var(--hx-fg); border: 2px solid var(--hx-primary);
+  border-radius: 50%; cursor: pointer;
+  transition: transform var(--hx-dur-fast) var(--hx-ease-spring);
+}
+.hx-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.hx-slider::-moz-range-thumb {
+  width: 16px; height: 16px;
+  background: var(--hx-fg); border: 2px solid var(--hx-primary);
+  border-radius: 50%; cursor: pointer;
+}
+
+/* Select chevron — fixed position, theme-aware */
+.hx-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 12px;
+  padding-right: 2.25rem;
+  color: var(--hx-fg);
+}
+.hx-select::-ms-expand { display: none; }
+.hx-light .hx-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); }
+.hx-dark .hx-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); }
+
+/* ──────────────────────────────────────────────────────────
+   TABLE
+   ────────────────────────────────────────────────────────── */
+.hx-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.hx-table thead th {
+  text-align: left; padding: 0.625rem 0.875rem;
+  font-weight: 500; font-size: 0.75rem;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--hx-fg-subtle);
+  background: var(--hx-bg-1);
+  border-bottom: 1px solid var(--hx-line);
+  position: sticky; top: 0; z-index: 1;
+}
+.hx-table tbody td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--hx-line-soft);
+  color: var(--hx-fg);
+  font-variant-numeric: tabular-nums;
+}
+.hx-table tbody tr { transition: background var(--hx-dur-fast) var(--hx-ease-out); }
+.hx-table tbody tr:hover { background: var(--hx-bg-1); }
+.hx-table tbody tr:last-child td { border-bottom: 0; }
+
+/* ── Visually upgraded header — gradient strip, sticky-by-default with
+   a soft underline glow, sortable affordance, filter row support. */
+.hx-table-rich thead th {
+  background: linear-gradient(180deg,
+    var(--hx-bg-2) 0%,
+    var(--hx-bg-1) 100%);
+  border-bottom: 1px solid var(--hx-line);
+  position: sticky; top: 0; z-index: 2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  /* Header text was --hx-fg-subtle (~0.70L) which read as a faint
+     gray; bumped up to --hx-fg-muted (~0.78L) plus weight 600 so
+     non-active columns stay legible without needing hover/sort.   */
+  color: var(--hx-fg-muted);
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 0.5rem 0.875rem;
+  user-select: none;
+  /* Subtle inner top highlight to give the header strip dimension */
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+}
+/* Hairline accent under the header — lights up on a hovered/active table */
+.hx-table-rich thead th::after {
+  content: ''; position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    oklch(from var(--hx-primary) l c h / 0.35) 50%,
+    transparent);
+  opacity: 0;
+  transition: opacity var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-table-rich:hover thead th::after { opacity: 1; }
+/* Sortable column — chevron appears on hover, locks in for active sort */
+.hx-th-sort {
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.375rem;
+}
+.hx-th-sort > .hx-th-sort-icon {
+  width: 10px; height: 10px;
+  opacity: 0; transition: opacity var(--hx-dur-base) var(--hx-ease-out),
+                              transform var(--hx-dur-base) var(--hx-ease-spring);
+}
+.hx-table-rich th:hover .hx-th-sort-icon,
+.hx-th-sort[data-sort="asc"] .hx-th-sort-icon,
+.hx-th-sort[data-sort="desc"] .hx-th-sort-icon { opacity: 1; }
+/* Active sort — color shifts to primary so the active column reads
+   instantly even amid a wide table. The chevron lock-in is what
+   tells you direction; the primary tint tells you "this is the key" */
+.hx-th-sort[data-sort="asc"]  { color: var(--hx-primary); }
+.hx-th-sort[data-sort="desc"] { color: var(--hx-primary); }
+.hx-th-sort[data-sort="desc"] .hx-th-sort-icon { transform: rotate(180deg); }
+.hx-th-sort[data-sort=""]:hover .hx-th-sort-icon { transform: translateY(-1px); }
+
+/* Sticky first column — the leftmost cell follows horizontal scroll.
+   Now treated as a "branded rail": the column gets a faint primary
+   bloom on its background and a brand-tinted accent line on its
+   right edge so it reads as a deliberate key column, not just a
+   sticky leftover. The scroll-shadow only appears when the table
+   has actually scrolled (data-scrolled attr toggled by JS).        */
+.hx-table-sticky thead th:first-child,
+.hx-table-sticky tbody td:first-child {
+  position: sticky; left: 0; z-index: 3;
+  /* Primary bloom: a near-flat tint that lifts toward the right
+     edge, suggesting the column is "lit" by the brand color. */
+  background:
+    linear-gradient(90deg,
+      oklch(from var(--hx-primary) l c h / 0.06) 0%,
+      oklch(from var(--hx-primary) l c h / 0.10) 100%),
+    var(--hx-bg-1);
+}
+.hx-table-sticky thead th:first-child {
+  z-index: 4;
+  background:
+    linear-gradient(90deg,
+      oklch(from var(--hx-primary) l c h / 0.10) 0%,
+      oklch(from var(--hx-primary) l c h / 0.16) 100%),
+    var(--hx-bg-2);
+  color: var(--hx-fg);
+}
+/* Drop shadow appears once you've scrolled — combines a hard
+   silhouette shadow with a primary-tinted glow so the divide
+   reads as branded, not just dark. */
+.hx-table-sticky[data-scrolled="true"] thead th:first-child::before,
+.hx-table-sticky[data-scrolled="true"] tbody td:first-child::before {
+  content: ''; position: absolute;
+  top: 0; right: -1px; bottom: 0; width: 14px;
+  background:
+    linear-gradient(90deg,
+      oklch(from var(--hx-primary) l c h / 0.18) 0%,
+      oklch(0 0 0 / 0.32) 30%,
+      transparent 100%);
+  pointer-events: none;
+  transition: opacity var(--hx-dur-base) var(--hx-ease-out);
+}
+/* Brand-tinted right edge — a 1px primary line, plus a 1px hot
+   inner stroke for an accent without being heavy. */
+.hx-table-sticky tbody td:first-child,
+.hx-table-sticky thead th:first-child {
+  border-right: 1px solid oklch(from var(--hx-primary) l c h / 0.35);
+  box-shadow:
+    inset -1px 0 0 0 oklch(from var(--hx-primary) l c h / 0.18);
+}
+
+/* Grouped rows — a group has a "header row" that summarizes children,
+   a chevron expander on the left, and a count badge on the right. The
+   children rows are revealed below; chevron rotates on expand.        */
+.hx-tr-group {
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--hx-bg-1), transparent);
+}
+.hx-tr-group td {
+  font-weight: 500; color: var(--hx-fg);
+  border-top: 1px solid var(--hx-line);
+}
+.hx-tr-group:hover td { background: var(--hx-bg-2); }
+.hx-tr-group .hx-tr-expander {
+  width: 14px; height: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--hx-fg-faint); margin-right: 0.5rem;
+  transition:
+    transform var(--hx-dur-slow) var(--hx-ease-spring),
+    color var(--hx-dur-base) var(--hx-ease-out),
+    filter var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-tr-group[aria-expanded="true"] .hx-tr-expander {
+  transform: rotate(90deg);
+  color: var(--hx-primary);
+  /* When expanded, the chevron picks up a subtle primary glow so
+     the rotation reads as "energised" — also helps the user spot
+     which groups are open at a glance. */
+  filter: drop-shadow(0 0 4px oklch(from var(--hx-primary) l c h / 0.55));
+}
+.hx-tr-group-count {
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-faint);
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line-soft);
+  padding: 1px 6px; border-radius: 999px;
+  margin-left: 0.5rem;
+}
+/* Child rows under a group — slight indent + lighter background */
+.hx-tr-child td:first-child {
+  padding-left: 2.25rem;
+  position: relative;
+}
+.hx-tr-child td:first-child::before {
+  content: ''; position: absolute;
+  left: 1.125rem; top: 0; bottom: 0; width: 1px;
+  background: var(--hx-line-soft);
+}
+/* Animate child rows in/out. The row is always in the DOM; the
+   visibility, opacity, and a brief vertical squash give a sense of
+   the row "tucking up" into the parent. Because <tr> can't
+   transition height directly, we wrap each cell's content in an
+   .hx-tr-child-cell div (see HTML) so we can animate that. The
+   row itself only animates opacity + a small translateY for the
+   parallax accent. JS toggles data-collapsed on click; on collapse
+   we wait for the animation to finish before hiding the row. */
+.hx-tr-child {
+  animation: hx-row-in var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-tr-child > td > .hx-tr-cell {
+  display: block;
+  overflow: hidden;
+  max-height: 60px;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    max-height var(--hx-dur-slow) var(--hx-ease-out),
+    opacity var(--hx-dur-base) var(--hx-ease-out),
+    transform var(--hx-dur-slow) var(--hx-ease-out),
+    padding var(--hx-dur-slow) var(--hx-ease-out);
+  padding-block: 0.5rem;
+}
+.hx-tr-child[data-collapsed="true"] > td {
+  /* Kill the cell's own padding so the row collapses to zero
+     height. The td still exists but the inner block does the
+     visual work. */
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom-color: transparent;
+  transition: padding var(--hx-dur-slow) var(--hx-ease-out),
+              border-color var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-tr-child[data-collapsed="true"] > td > .hx-tr-cell {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  padding-block: 0;
+}
+@keyframes hx-row-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Filter chip row — sits under the header; chips fade in on entry, and
+   row "matches" highlight briefly when a filter is applied/changed. */
+.hx-table-filter-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 0.5rem 0.875rem;
+  background: var(--hx-bg-1);
+  border-bottom: 1px solid var(--hx-line-soft);
+  font-size: 0.75rem;
+}
+.hx-tr-flash {
+  animation: hx-row-flash 0.6s var(--hx-ease-out);
+}
+@keyframes hx-row-flash {
+  0%   { background: oklch(from var(--hx-primary) l c h / 0.18); }
+  100% { background: transparent; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   KBD
+   ────────────────────────────────────────────────────────── */
+.hx-kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.25rem; height: 1.25rem; padding: 0 0.3125rem;
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-muted);
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line);
+  border-bottom-width: 2px;
+  border-radius: var(--hx-radius-xs);
+}
+
+/* ──────────────────────────────────────────────────────────
+   TABS
+   ────────────────────────────────────────────────────────── */
+.hx-tabs { display: inline-flex; gap: 0.25rem; border-bottom: 1px solid var(--hx-line); position: relative; }
+.hx-tab {
+  position: relative;
+  padding: 0.625rem 0.875rem; font-size: 0.875rem;
+  color: var(--hx-fg-muted); cursor: pointer;
+  background: transparent; border: 0;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  display: inline-flex; align-items: center; gap: 0.4375rem;
+  transition: color var(--hx-dur-base) var(--hx-ease-out),
+              border-color var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-tab > svg { width: 14px; height: 14px; flex-shrink: 0; transition: transform var(--hx-dur-base) var(--hx-ease-spring), color var(--hx-dur-base) var(--hx-ease-out); }
+.hx-tab:hover { color: var(--hx-fg); }
+.hx-tab:hover > svg { transform: translateY(-1px); }
+.hx-tab[aria-selected="true"] { color: var(--hx-fg); border-bottom-color: var(--hx-primary); }
+.hx-tab[aria-selected="true"] > svg { color: var(--hx-primary); }
+.hx-tab .hx-badge { margin-left: 0.25rem; }
+/* Underline tab — opt-in glow bloom under the active tab. The pseudo-
+   element is a soft halo that bleeds DOWNWARD from the underline edge,
+   giving the impression the brand color is leaking into the panel below.
+   Pair with .hx-tabs-bloom on the tablist parent.                       */
+.hx-tabs-bloom .hx-tab[aria-selected="true"]::after {
+  content: ''; position: absolute;
+  left: 10%; right: 10%; bottom: -1px; height: 22px;
+  background: radial-gradient(ellipse 100% 140% at 50% 0%,
+    oklch(from var(--hx-primary) l c h / 0.30) 0%,
+    oklch(from var(--hx-primary) l c h / 0.10) 35%,
+    transparent 70%);
+  pointer-events: none;
+  animation: hx-tab-bloom-in 0.4s var(--hx-ease-out);
+}
+@keyframes hx-tab-bloom-in {
+  from { opacity: 0; transform: scaleY(0.4); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+
+/* Pill tabs — the selected pill animates between positions via
+   :has() on the parent. Each option owns its own background + shadow
+   so the tab feels lifted; the icon nudges and the indicator slides. */
+.hx-tabs-pill { display: inline-flex; gap: 0.125rem; padding: 0.25rem; background: var(--hx-bg-1); border: 1px solid var(--hx-line); border-radius: var(--hx-radius-md); }
+.hx-tab-pill {
+  position: relative;
+  padding: 0.4375rem 0.75rem; font-size: 0.8125rem;
+  color: var(--hx-fg-muted); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4375rem;
+  border-radius: calc(var(--hx-radius-md) - 3px);
+  transition: color var(--hx-dur-base) var(--hx-ease-out);
+  user-select: none;
+  background: transparent; border: 0;
+}
+.hx-tab-pill > svg { width: 14px; height: 14px; flex-shrink: 0; transition: transform var(--hx-dur-base) var(--hx-ease-spring), color var(--hx-dur-base) var(--hx-ease-out); }
+.hx-tab-pill:hover { color: var(--hx-fg); }
+.hx-tab-pill[aria-selected="true"] {
+  background: var(--hx-bg-3); color: var(--hx-fg);
+  box-shadow: var(--hx-shadow-sm), inset 0 0 0 1px var(--hx-line-soft);
+  animation: hx-tab-pill-pop 0.32s var(--hx-ease-spring);
+}
+.hx-tab-pill[aria-selected="true"] > svg { color: var(--hx-primary); transform: scale(1.05); }
+@keyframes hx-tab-pill-pop {
+  0%   { transform: scale(0.96); }
+  60%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Glow pill tabs — selected pill is the BRAND color, with an outward bloom
+   behind it. Use sparingly — meant for marketing surfaces, hero tab swaps,
+   or a single feature filter that wants to feel premium.                 */
+.hx-tabs-pill-glow { background: var(--hx-bg); }
+.hx-tabs-pill-glow .hx-tab-pill[aria-selected="true"] {
+  background: linear-gradient(180deg,
+    oklch(from var(--hx-primary) calc(l + 0.05) c h),
+    var(--hx-primary));
+  color: var(--hx-fg-on-brand, white);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.25),
+    0 1px 2px oklch(from var(--hx-primary) l c h / 0.40),
+    0 0 24px -4px oklch(from var(--hx-primary) l c h / 0.55);
+}
+.hx-tabs-pill-glow .hx-tab-pill[aria-selected="true"] > svg { color: inherit; }
+.hx-tabs-pill-glow .hx-tab-pill[aria-selected="true"]::before {
+  /* outward halo — sits BEHIND the pill */
+  content: ''; position: absolute; inset: -8px;
+  background: radial-gradient(ellipse 80% 100% at 50% 50%,
+    oklch(from var(--hx-primary) l c h / 0.35),
+    transparent 60%);
+  z-index: -1; pointer-events: none;
+  border-radius: inherit;
+  animation: hx-tab-bloom-in 0.5s var(--hx-ease-out);
+}
+.hx-tabs-pill-glow .hx-tab-pill { isolation: isolate; }
+
+/* Vertical tabs — for wide settings layouts. Indicator slides on the
+   LEFT edge instead of the bottom. Each tab is a row with icon + label.  */
+.hx-tabs-vertical {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 4px; background: var(--hx-bg-1);
+  border: 1px solid var(--hx-line); border-radius: var(--hx-radius-md);
+  min-width: 200px;
+}
+.hx-tab-vertical {
+  position: relative;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.625rem; font-size: 0.8125rem;
+  color: var(--hx-fg-muted); cursor: pointer;
+  border-radius: calc(var(--hx-radius-md) - 4px);
+  background: transparent; border: 0;
+  transition: color var(--hx-dur-base), background var(--hx-dur-base);
+}
+.hx-tab-vertical > svg { width: 14px; height: 14px; flex-shrink: 0; transition: transform var(--hx-dur-base) var(--hx-ease-spring); }
+.hx-tab-vertical:hover { color: var(--hx-fg); background: var(--hx-bg-2); }
+.hx-tab-vertical[aria-selected="true"] {
+  color: var(--hx-fg);
+  background: oklch(from var(--hx-primary) l c h / 0.08);
+}
+.hx-tab-vertical[aria-selected="true"] > svg { color: var(--hx-primary); transform: scale(1.05); }
+.hx-tab-vertical[aria-selected="true"]::before {
+  content: ''; position: absolute;
+  left: -1px; top: 6px; bottom: 6px; width: 2px;
+  background: var(--hx-primary);
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px oklch(from var(--hx-primary) l c h / 0.5);
+  animation: hx-tab-vrail-in 0.32s var(--hx-ease-spring);
+}
+@keyframes hx-tab-vrail-in {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   TOOLTIP / POPOVER ELEMENTS
+   ────────────────────────────────────────────────────────── */
+.hx-tooltip {
+  position: absolute; z-index: 50;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem; color: var(--hx-fg);
+  background: var(--hx-bg-3);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-sm);
+  box-shadow: var(--hx-shadow-md);
+  white-space: nowrap; pointer-events: none;
+  animation: hx-fade-in var(--hx-dur-base) var(--hx-ease-out);
+}
+
+@keyframes hx-fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hx-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hx-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes hx-slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.hx-anim-fade-in { animation: hx-fade-in var(--hx-dur-base) var(--hx-ease-out) both; }
+.hx-anim-slide-up { animation: hx-slide-up var(--hx-dur-slow) var(--hx-ease-out) both; }
+.hx-anim-scale-in { animation: hx-scale-in var(--hx-dur-base) var(--hx-ease-spring) both; }
+
+/* ──────────────────────────────────────────────────────────
+   PROGRESS / METER
+   ────────────────────────────────────────────────────────── */
+.hx-progress {
+  width: 100%; height: 6px;
+  background: var(--hx-bg-3); border-radius: var(--hx-radius-full);
+  overflow: hidden; position: relative;
+}
+.hx-progress-bar {
+  height: 100%; background: var(--hx-primary);
+  border-radius: inherit;
+  transition: width 600ms var(--hx-ease-out);
+  position: relative;
+}
+.hx-progress-bar::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.25), transparent);
+  animation: hx-shimmer 2s linear infinite;
+}
+@keyframes hx-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* ──────────────────────────────────────────────────────────
+   CALLOUT / ALERT
+   ────────────────────────────────────────────────────────── */
+.hx-callout {
+  display: flex; gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  background: var(--hx-bg-1);
+}
+.hx-callout-icon { flex-shrink: 0; width: 1.125rem; height: 1.125rem; margin-top: 0.0625rem; }
+.hx-callout-info { border-color: oklch(from var(--hx-info) l c h / 0.3); background: var(--hx-info-bg); }
+.hx-callout-info .hx-callout-icon { color: var(--hx-info); }
+.hx-callout-success { border-color: oklch(from var(--hx-success) l c h / 0.3); background: var(--hx-success-bg); }
+.hx-callout-success .hx-callout-icon { color: var(--hx-success); }
+.hx-callout-warning { border-color: oklch(from var(--hx-warning) l c h / 0.3); background: var(--hx-warning-bg); }
+.hx-callout-warning .hx-callout-icon { color: var(--hx-warning); }
+.hx-callout-danger { border-color: oklch(from var(--hx-danger) l c h / 0.3); background: var(--hx-danger-bg); }
+.hx-callout-danger .hx-callout-icon { color: var(--hx-danger); }
+
+/* Dismissible callouts — composable extras layered on the base callout.
+   .hx-callout-dismissible adds extra right padding so the close button
+   doesn't crowd content; .hx-callout-close is the corner button.        */
+.hx-callout { position: relative; }
+.hx-callout-dismissible { padding-right: 2.5rem; }
+.hx-callout-close {
+  position: absolute; top: 0.625rem; right: 0.625rem;
+  width: 1.375rem; height: 1.375rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; cursor: pointer;
+  color: var(--hx-fg-faint);
+  border-radius: var(--hx-radius-sm);
+  transition: color var(--hx-dur-fast) var(--hx-ease-out),
+              background var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-callout-close:hover { color: var(--hx-fg); background: oklch(from currentColor l c h / 0.08); }
+.hx-callout-close > svg { width: 13px; height: 13px; }
+.hx-callout-actions {
+  margin-top: 0.5rem;
+  display: flex; align-items: center; gap: 0.375rem;
+}
+
+/* Countdown / auto-dismiss progress bar — sits along the BOTTOM edge of
+   the callout, drawn in the variant accent color, animating from full
+   width down to zero over --hx-callout-duration (default 6s). The bar
+   pauses on hover so the user can read; pause is a CSS-only trick using
+   :hover { animation-play-state: paused }.                              */
+.hx-callout-progress {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: oklch(from var(--callout-accent, var(--hx-fg-muted)) l c h / 0.18);
+  border-radius: 0 0 calc(var(--hx-radius-md) - 1px) calc(var(--hx-radius-md) - 1px);
+  overflow: hidden;
+}
+.hx-callout-progress::after {
+  content: ''; display: block; height: 100%;
+  width: 100%; transform-origin: left center;
+  background: var(--callout-accent, var(--hx-primary));
+  box-shadow: 0 0 12px oklch(from var(--callout-accent, var(--hx-primary)) l c h / 0.5);
+  animation: hx-callout-countdown var(--hx-callout-duration, 6s) linear forwards;
+}
+.hx-callout-progress[data-paused="true"]::after,
+.hx-callout:hover .hx-callout-progress::after { animation-play-state: paused; }
+@keyframes hx-callout-countdown {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+/* Per-variant accent threads through to progress bar */
+.hx-callout-info    { --callout-accent: var(--hx-info); }
+.hx-callout-success { --callout-accent: var(--hx-success); }
+.hx-callout-warning { --callout-accent: var(--hx-warning); }
+.hx-callout-danger  { --callout-accent: var(--hx-danger); }
+
+/* Exit animation when JS removes the callout — slide up + fade */
+.hx-callout-exit {
+  animation: hx-callout-exit 240ms var(--hx-ease-in-out) forwards;
+}
+@keyframes hx-callout-exit {
+  to { opacity: 0; transform: translateY(-8px) scale(0.98); max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-top-width: 0; border-bottom-width: 0; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   SCROLLBARS
+   ────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────
+   SCROLLBARS — premium, brand-accented
+   ──────────────────────────────────────────────────────────
+   Two flavors:
+   - .hx-scroll        : default, neutral but glossy. Thumb is a
+                         vertical gradient with a primary-tinted
+                         hot-edge that brightens on hover.
+   - .hx-scroll-accent : opt-in fully primary-tinted thumb for
+                         hero scroll regions (sidebars, drawers).
+   Both work on Firefox via the scrollbar-* properties; webkit
+   browsers get the richer ::-webkit-scrollbar styling. We also
+   apply .hx-scroll defaults to .tbl-wrap automatically so every
+   data table picks up the upgraded scrollbar without extra
+   class plumbing. */
+
+/* Firefox — single-line declaration, can't gradient. */
+.hx-scroll, .tbl-wrap {
+  scrollbar-color: oklch(from var(--hx-primary) l c h / 0.45) transparent;
+  scrollbar-width: thin;
+}
+.hx-scroll-accent {
+  scrollbar-color: var(--hx-primary) transparent;
+  scrollbar-width: thin;
+}
+
+/* Webkit — full styling */
+.hx-scroll::-webkit-scrollbar,
+.tbl-wrap::-webkit-scrollbar,
+.hx-scroll-accent::-webkit-scrollbar {
+  width: 12px; height: 12px;
+}
+.hx-scroll::-webkit-scrollbar-track,
+.tbl-wrap::-webkit-scrollbar-track,
+.hx-scroll-accent::-webkit-scrollbar-track {
+  /* Track is a subtle inset trough — primary-tinted at the edges,
+     transparent in the middle. Reads as "where the scroll lives". */
+  background:
+    linear-gradient(90deg,
+      oklch(from var(--hx-primary) l c h / 0.04) 0%,
+      transparent 50%,
+      oklch(from var(--hx-primary) l c h / 0.04) 100%);
+  border-radius: 999px;
+}
+.hx-scroll::-webkit-scrollbar-track:vertical,
+.tbl-wrap::-webkit-scrollbar-track:vertical,
+.hx-scroll-accent::-webkit-scrollbar-track:vertical {
+  background:
+    linear-gradient(180deg,
+      oklch(from var(--hx-primary) l c h / 0.04) 0%,
+      transparent 50%,
+      oklch(from var(--hx-primary) l c h / 0.04) 100%);
+}
+.hx-scroll::-webkit-scrollbar-thumb,
+.tbl-wrap::-webkit-scrollbar-thumb {
+  /* Glossy thumb — neutral base with a primary highlight strip
+     on the leading edge. The 2px transparent border + bg-clip
+     padding-box gives the thumb floating-pill geometry. */
+  background:
+    linear-gradient(180deg,
+      oklch(from var(--hx-primary) calc(l + 0.05) c h / 0.55) 0%,
+      oklch(from var(--hx-primary) l c h / 0.42) 50%,
+      oklch(from var(--hx-primary) calc(l - 0.10) c h / 0.55) 100%);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 0 0 1px oklch(from var(--hx-primary) l c h / 0.18),
+    inset 1px 0 0 0 oklch(from var(--hx-primary) calc(l + 0.15) c h / 0.55);
+  transition: background var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-scroll::-webkit-scrollbar-thumb:hover,
+.tbl-wrap::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg,
+      oklch(from var(--hx-primary) calc(l + 0.10) c h / 0.85) 0%,
+      oklch(from var(--hx-primary) l c h / 0.75) 50%,
+      oklch(from var(--hx-primary) calc(l - 0.08) c h / 0.85) 100%);
+  box-shadow:
+    inset 0 0 0 1px oklch(from var(--hx-primary) l c h / 0.32),
+    inset 1px 0 0 0 oklch(from var(--hx-primary) calc(l + 0.20) c h / 0.85),
+    0 0 8px oklch(from var(--hx-primary) l c h / 0.32);
+}
+.hx-scroll::-webkit-scrollbar-thumb:active,
+.tbl-wrap::-webkit-scrollbar-thumb:active {
+  background: var(--hx-primary);
+}
+.hx-scroll-accent::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(180deg,
+      oklch(from var(--hx-primary) calc(l + 0.10) c h) 0%,
+      var(--hx-primary) 50%,
+      oklch(from var(--hx-primary) calc(l - 0.10) c h) 100%);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 0 0 1px oklch(from var(--hx-primary) calc(l + 0.10) c h),
+    0 0 12px oklch(from var(--hx-primary) l c h / 0.45);
+}
+.hx-scroll::-webkit-scrollbar-corner,
+.tbl-wrap::-webkit-scrollbar-corner,
+.hx-scroll-accent::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* Soft side-fade at the end of the scroll thumb track. The corner
+   appears at v/h scroll intersection — we hide its harsh box. */
+
+/* ──────────────────────────────────────────────────────────
+   STATUS DOT
+   ────────────────────────────────────────────────────────── */
+.hx-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.hx-dot-online { background: var(--hx-success); box-shadow: 0 0 0 3px oklch(from var(--hx-success) l c h / 0.18); }
+.hx-dot-warn   { background: var(--hx-warning); box-shadow: 0 0 0 3px oklch(from var(--hx-warning) l c h / 0.18); }
+.hx-dot-offline{ background: var(--hx-fg-faint); }
+.hx-dot-error  { background: var(--hx-danger); box-shadow: 0 0 0 3px oklch(from var(--hx-danger) l c h / 0.18); }
+
+/* live ping */
+.hx-ping { position: relative; }
+.hx-ping::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: currentColor;
+  animation: hx-ping 1.4s var(--hx-ease-out) infinite;
+}
+@keyframes hx-ping {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+/* ──────────────────────────────────────────────────────────
+   MODAL / DRAWER backdrop
+   ────────────────────────────────────────────────────────── */
+.hx-backdrop {
+  position: fixed; inset: 0; z-index: 40;
+  background: var(--hx-bg-overlay);
+  backdrop-filter: blur(6px);
+  animation: hx-fade-in var(--hx-dur-base) var(--hx-ease-out);
+}
+
+/* ──────────────────────────────────────────────────────────
+   SIDEBAR ITEMS
+   ────────────────────────────────────────────────────────── */
+.hx-nav-item {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.8125rem; font-weight: 450;
+  color: var(--hx-fg-muted);
+  border-radius: var(--hx-radius-sm);
+  cursor: pointer; position: relative;
+  transition: background var(--hx-dur-fast) var(--hx-ease-out), color var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-nav-item:hover { background: var(--hx-bg-2); color: var(--hx-fg); }
+.hx-nav-item[aria-current="page"], .hx-nav-item.active {
+  background: var(--hx-bg-2); color: var(--hx-fg);
+}
+.hx-nav-item[aria-current="page"]::before, .hx-nav-item.active::before {
+  content: ''; position: absolute; left: -8px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--hx-primary); border-radius: 2px;
+}
+.hx-nav-icon { width: 1rem; height: 1rem; flex-shrink: 0; opacity: 0.85; }
+
+.hx-nav-section {
+  font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--hx-fg-faint);
+  padding: 0.875rem 0.625rem 0.375rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   CODE / TERMINAL
+   ────────────────────────────────────────────────────────── */
+.hx-code {
+  font-family: var(--hx-font-mono); font-size: 0.8125rem;
+  background: var(--hx-bg);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  padding: 1rem;
+  overflow: auto;
+  line-height: 1.6;
+}
+.hx-code-inline {
+  font-family: var(--hx-font-mono); font-size: 0.8125em;
+  padding: 0.125rem 0.375rem;
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-xs);
+  color: var(--hx-accent-400);
+}
+
+/* Syntax highlighting */
+.tok-kw { color: oklch(0.72 0.18 295); }
+.tok-fn { color: oklch(0.78 0.16 195); }
+.tok-str { color: oklch(0.78 0.14 130); }
+.tok-num { color: oklch(0.78 0.16 75); }
+.tok-com { color: var(--hx-fg-faint); font-style: italic; }
+.tok-op { color: var(--hx-fg-muted); }
+.tok-pun { color: var(--hx-fg-muted); }
+.tok-tag { color: oklch(0.70 0.18 22); }
+.tok-attr { color: oklch(0.78 0.16 75); }
+.tok-prop { color: oklch(0.85 0.10 195); }
+.hx-light .tok-kw { color: oklch(0.42 0.18 295); }
+.hx-light .tok-fn { color: oklch(0.42 0.16 195); }
+.hx-light .tok-str { color: oklch(0.40 0.14 130); }
+.hx-light .tok-num { color: oklch(0.48 0.16 75); }
+.hx-light .tok-com { color: var(--hx-fg-faint); }
+.hx-light .tok-tag { color: oklch(0.50 0.18 22); }
+.hx-light .tok-prop { color: oklch(0.42 0.10 195); }
+
+/* ──────────────────────────────────────────────────────────
+   AVATAR
+   ────────────────────────────────────────────────────────── */
+.hx-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem;
+  background: var(--hx-bg-3);
+  color: var(--hx-fg);
+  border-radius: 50%;
+  font-size: 0.75rem; font-weight: 500;
+  border: 1px solid var(--hx-line);
+}
+
+/* ──────────────────────────────────────────────────────────
+   SECTION ANCHOR
+   ────────────────────────────────────────────────────────── */
+.hx-section { scroll-margin-top: 80px; }
+.hx-section-title {
+  font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--hx-primary);
+}
+.hx-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--hx-fg-subtle);
+}
+.hx-eyebrow::before {
+  content: ''; width: 16px; height: 1px; background: var(--hx-line-strong);
+}
+
+/* ──────────────────────────────────────────────────────────
+   LOADING / SAVING / ERROR STATES
+   ────────────────────────────────────────────────────────── */
+
+/* Spinners — multiple flavors */
+.hx-spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid var(--hx-line-strong);
+  border-top-color: var(--hx-primary);
+  border-radius: 50%;
+  animation: hx-spin 700ms linear infinite;
+  animation-play-state: var(--hx-motion-pulse, running);
+}
+.hx-spinner-sm { width: 12px; height: 12px; border-width: 1.5px; }
+.hx-spinner-lg { width: 24px; height: 24px; border-width: 2.5px; }
+.hx-spinner-xl { width: 40px; height: 40px; border-width: 3px; }
+.hx-spinner-on-brand { border-color: oklch(1 0 0 / 0.25); border-top-color: white; }
+@keyframes hx-spin { to { transform: rotate(360deg); } }
+
+/* Three-dot loader */
+.hx-dots-loader { display: inline-flex; gap: 4px; align-items: center; }
+.hx-dots-loader span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.4;
+  animation: hx-dots 1s ease-in-out infinite;
+  animation-play-state: var(--hx-motion-pulse, running);
+}
+.hx-dots-loader span:nth-child(2) { animation-delay: 0.15s; }
+.hx-dots-loader span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes hx-dots {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Bar loader */
+.hx-bar-loader { display: inline-flex; gap: 2px; align-items: end; height: 14px; }
+.hx-bar-loader span {
+  width: 2px; height: 100%; background: currentColor; opacity: 0.7;
+  animation: hx-bar 0.9s ease-in-out infinite;
+  animation-play-state: var(--hx-motion-pulse, running);
+}
+.hx-bar-loader span:nth-child(2) { animation-delay: 0.1s; }
+.hx-bar-loader span:nth-child(3) { animation-delay: 0.2s; }
+.hx-bar-loader span:nth-child(4) { animation-delay: 0.3s; }
+@keyframes hx-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+/* Indeterminate top bar (page-level loader) */
+.hx-topbar-loader {
+  position: relative; height: 2px; width: 100%;
+  background: oklch(from var(--hx-primary) l c h / 0.15);
+  overflow: hidden; border-radius: 2px;
+}
+.hx-topbar-loader::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--hx-primary), transparent);
+  width: 30%; animation: hx-topbar 1.4s ease-in-out infinite;
+  animation-play-state: var(--hx-motion-pulse, running);
+}
+@keyframes hx-topbar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(450%); }
+}
+
+/* Skeletons */
+.hx-skel {
+  background: linear-gradient(
+    90deg,
+    var(--hx-bg-2) 0%,
+    var(--hx-bg-3) 50%,
+    var(--hx-bg-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: hx-skel-shimmer 1.6s ease-in-out infinite;
+  animation-play-state: var(--hx-motion-pulse, running);
+  border-radius: var(--hx-radius-sm);
+  display: block;
+}
+@keyframes hx-skel-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.hx-skel-text { height: 0.875em; border-radius: var(--hx-radius-xs); }
+.hx-skel-circle { border-radius: 50%; }
+
+/* Container loading overlay */
+.hx-loading-cover {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 0.75rem;
+  background: oklch(from var(--hx-bg-elev) l c h / 0.78);
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+  animation: hx-fade-in var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-loading-cover-label {
+  font-size: 0.75rem; color: var(--hx-fg-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Error state cell */
+.hx-error-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 0.625rem; padding: 1.75rem;
+  text-align: center; min-height: 120px;
+}
+.hx-error-state .hx-error-icon {
+  width: 2.25rem; height: 2.25rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--hx-danger-bg);
+  color: var(--hx-danger);
+}
+
+/* Save state pill */
+.hx-save-pill {
+  display: inline-flex; align-items: center; gap: 0.4375rem;
+  padding: 0.1875rem 0.5rem 0.1875rem 0.4375rem;
+  font-size: 0.75rem;
+  border-radius: var(--hx-radius-full);
+  border: 1px solid var(--hx-line);
+  background: var(--hx-bg-1);
+  color: var(--hx-fg-muted);
+  font-variant-numeric: tabular-nums;
+  transition: all var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-save-pill[data-state="saving"] { border-color: oklch(from var(--hx-info) l c h / 0.4); color: var(--hx-info); background: var(--hx-info-bg); }
+.hx-save-pill[data-state="saved"] { border-color: oklch(from var(--hx-success) l c h / 0.4); color: var(--hx-success); background: var(--hx-success-bg); }
+.hx-save-pill[data-state="error"] { border-color: oklch(from var(--hx-danger) l c h / 0.4); color: var(--hx-danger); background: var(--hx-danger-bg); }
+.hx-save-pill[data-state="dirty"] { border-color: oklch(from var(--hx-warning) l c h / 0.4); color: var(--hx-warning); background: var(--hx-warning-bg); }
+
+/* Button loading — inline spinner BESIDE label (Apple-style) */
+.hx-btn[data-loading="true"] {
+  cursor: progress; pointer-events: none;
+  position: relative;
+}
+.hx-btn[data-loading="true"] > svg,
+.hx-btn[data-loading="true"] > .hx-kbd { display: none; }
+.hx-btn[data-loading="true"]::before {
+  content: '';
+  display: inline-block;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  border: 1.75px solid currentColor;
+  border-top-color: transparent;
+  border-right-color: transparent;
+  opacity: 0.85;
+  animation: hx-btn-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+.hx-btn.hx-btn-sm[data-loading="true"]::before { width: 11px; height: 11px; border-width: 1.5px; }
+.hx-btn.hx-btn-lg[data-loading="true"]::before { width: 14px; height: 14px; }
+@keyframes hx-btn-spin { to { transform: rotate(360deg); } }
+
+/* Button success flash (post-save) */
+.hx-btn[data-state="success"] {
+  background: var(--hx-success) !important;
+  border-color: var(--hx-success) !important;
+  color: white !important;
+}
+
+/* ──────────────────────────────────────────────────────────
+   DROPDOWN / MENU
+   ────────────────────────────────────────────────────────── */
+.hx-menu {
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-shadow-lg);
+  padding: 0.3125rem;
+  min-width: 220px;
+  animation: hx-menu-in var(--hx-dur-base) var(--hx-ease-spring);
+  transform-origin: top left;
+}
+@keyframes hx-menu-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.hx-menu-section {
+  font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--hx-fg-faint);
+  padding: 0.625rem 0.625rem 0.3125rem;
+}
+/* Dropdown menu — clean, conventional hover model. Each item gets
+   a soft brand-tinted fill on hover (danger variant gets its own
+   red wash). No indicator pill, no cursor tracking — those belong
+   in the sidebar nav, not in transient menus. */
+.hx-menu-item {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.4375rem 0.5rem;
+  font-size: 0.8125rem; color: var(--hx-fg);
+  border-radius: var(--hx-radius-sm);
+  cursor: pointer; user-select: none;
+  position: relative;
+  transition:
+    background var(--hx-dur-fast) var(--hx-ease-out),
+    color var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-menu-item:hover,
+.hx-menu-item:focus-visible,
+.hx-menu-item[data-highlighted="true"] {
+  background: oklch(from var(--hx-primary) l c h / 0.12);
+  color: var(--hx-fg);
+  outline: none;
+}
+.hx-menu-item[disabled], .hx-menu-item[aria-disabled="true"] {
+  opacity: 0.45; cursor: not-allowed; pointer-events: none;
+}
+.hx-menu-item-icon { width: 1rem; height: 1rem; flex-shrink: 0; color: var(--hx-fg-muted); transition: color var(--hx-dur-fast) var(--hx-ease-out); }
+.hx-menu-item:hover .hx-menu-item-icon,
+.hx-menu-item:focus-visible .hx-menu-item-icon,
+.hx-menu-item[data-highlighted="true"] .hx-menu-item-icon { color: var(--hx-primary); }
+.hx-menu-item-shortcut {
+  margin-left: auto;
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem;
+  color: var(--hx-fg-faint);
+  letter-spacing: 0.04em;
+}
+
+/* Danger variant — keeps the same simple fill model, just red. */
+.hx-menu-item-danger { color: var(--hx-danger); }
+.hx-menu-item-danger .hx-menu-item-icon { color: var(--hx-danger); }
+.hx-menu-item-danger:hover,
+.hx-menu-item-danger:focus-visible,
+.hx-menu-item-danger[data-highlighted="true"] {
+  background: oklch(from var(--hx-danger) l c h / 0.14);
+  color: var(--hx-danger);
+}
+.hx-menu-item-danger:hover .hx-menu-item-icon,
+.hx-menu-item-danger:focus-visible .hx-menu-item-icon,
+.hx-menu-item-danger[data-highlighted="true"] .hx-menu-item-icon { color: var(--hx-danger); }
+
+.hx-menu-divider { height: 1px; background: var(--hx-line); margin: 0.3125rem 0.125rem; }
+
+.hx-menu-rich {
+  display: flex; gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+}
+.hx-menu-rich-icon {
+  width: 2rem; height: 2rem; border-radius: var(--hx-radius-sm);
+  background: var(--hx-bg-2); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--hx-fg-muted);
+}
+.hx-menu-item:hover .hx-menu-rich-icon { background: var(--hx-bg-3); color: var(--hx-primary); }
+.hx-menu-rich-title { font-size: 0.8125rem; font-weight: 500; }
+.hx-menu-rich-desc { font-size: 0.75rem; color: var(--hx-fg-muted); margin-top: 1px; line-height: 1.35; }
+
+.hx-menu-check {
+  width: 14px; height: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hx-primary);
+}
+
+/* ──────────────────────────────────────────────────────────
+   COMPOSITE FORM INPUTS — common SaaS patterns
+   ────────────────────────────────────────────────────────── */
+
+/* Field shell — wraps label + caption + control + help text. The shell
+   owns the error state via [data-state="error"] which colors the bottom
+   help text and the inline error icon. Caption sits between label and
+   control as an explanatory subline (e.g. "URLs are public — anyone with
+   the link can view"). */
+.hx-field {
+  display: flex; flex-direction: column; gap: 0;
+  --field-accent: var(--hx-primary);
+}
+.hx-field-label {
+  font-size: 0.8125rem; font-weight: 500; color: var(--hx-fg);
+  letter-spacing: -0.005em; margin-bottom: 2px;
+  display: flex; align-items: center; gap: 0.375rem;
+}
+.hx-field-label .hx-field-required {
+  color: var(--hx-danger); font-weight: 400; line-height: 1;
+}
+.hx-field-label .hx-field-optional {
+  color: var(--hx-fg-faint); font-weight: 400; font-size: 0.6875rem;
+  font-family: var(--hx-font-mono); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-left: auto;
+}
+.hx-field-caption {
+  font-size: 0.75rem; color: var(--hx-fg-muted); line-height: 1.4;
+  margin-bottom: 0.4375rem;
+}
+.hx-field-help {
+  font-size: 0.75rem; color: var(--hx-fg-subtle); line-height: 1.4;
+  margin-top: 0.375rem;
+  display: flex; align-items: flex-start; gap: 0.375rem;
+}
+.hx-field-help > svg { width: 12px; height: 12px; flex-shrink: 0; margin-top: 1px; opacity: 0.7; }
+.hx-field[data-state="error"] .hx-field-help { color: var(--hx-danger); }
+.hx-field[data-state="error"] .hx-field-help > svg { opacity: 1; }
+.hx-field[data-state="success"] .hx-field-help { color: var(--hx-success); }
+.hx-field[data-state="warning"] .hx-field-help { color: var(--hx-warning); }
+.hx-field[data-state="error"] .hx-input,
+.hx-field[data-state="error"] .hx-select,
+.hx-field[data-state="error"] .hx-textarea,
+.hx-field[data-state="error"] .hx-input-shell {
+  border-color: var(--hx-danger);
+}
+.hx-field[data-state="error"] .hx-input:focus,
+.hx-field[data-state="error"] .hx-select:focus,
+.hx-field[data-state="error"] .hx-textarea:focus,
+.hx-field[data-state="error"] .hx-input-shell:focus-within {
+  box-shadow: 0 0 0 3px oklch(from var(--hx-danger) l c h / 0.20);
+}
+
+/* Composite input shell — prefix/suffix slots flank a bare <input>.
+   The shell owns the border + focus ring; children are unstyled.       */
+.hx-input-shell {
+  display: flex; align-items: stretch;
+  background: var(--hx-bg-1);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  overflow: hidden;
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out),
+              background-color var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-input-shell:hover { border-color: var(--hx-line-strong); }
+.hx-input-shell:focus-within {
+  border-color: var(--hx-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.18);
+  background: var(--hx-bg);
+}
+.hx-input-shell > input,
+.hx-input-shell > .hx-input-bare {
+  flex: 1; min-width: 0;
+  padding: 0.5rem 0.75rem;
+  background: transparent; border: 0; outline: 0;
+  font-size: 0.875rem; font-family: inherit;
+  color: var(--hx-fg);
+}
+.hx-input-shell > input::placeholder { color: var(--hx-fg-faint); }
+/* Affix — the static label or icon stuck to either side of the input.
+   prefix sits flush left, suffix flush right, both color-muted by default
+   and slightly tinted on the surface to read as their own zone.        */
+.hx-input-affix {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0 0.625rem;
+  background: var(--hx-bg-2);
+  color: var(--hx-fg-muted);
+  font-size: 0.8125rem; font-family: var(--hx-font-mono);
+  border-right: 1px solid var(--hx-line-soft);
+  flex-shrink: 0;
+  user-select: none;
+}
+.hx-input-affix-suffix {
+  border-right: 0; border-left: 1px solid var(--hx-line-soft);
+}
+.hx-input-affix > svg { width: 14px; height: 14px; opacity: 0.85; }
+/* Variant: free-floating affix INSIDE the input area (no separator) — for
+   icons that should feel like part of the input, not a separate zone. */
+.hx-input-affix-ghost {
+  background: transparent; border: 0;
+  color: var(--hx-fg-faint);
+  padding: 0 0.5rem;
+}
+/* Trailing action button inside an input shell (e.g. a clear-X) */
+.hx-input-action {
+  appearance: none; border: 0; background: transparent;
+  color: var(--hx-fg-faint); cursor: pointer;
+  padding: 0 0.625rem; display: inline-flex; align-items: center;
+  transition: color var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-input-action:hover { color: var(--hx-fg); }
+.hx-input-action > svg { width: 14px; height: 14px; }
+
+/* Character / progress meter on the right of an input — useful for limited
+   fields (username, slug, bio). Render as a subtle counter that turns
+   warning then danger as the user nears the cap.                      */
+.hx-input-meter {
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-faint); padding: 0 0.625rem;
+  display: flex; align-items: center;
+  letter-spacing: 0.02em;
+}
+.hx-input-meter[data-state="warning"] { color: var(--hx-warning); }
+.hx-input-meter[data-state="error"]   { color: var(--hx-danger); }
+
+/* ── Segmented radio group — pill of mutually-exclusive options.
+   Implemented with native <input type=radio> hidden + <label> wrappers,
+   so it's a11y-correct and keyboard-navigable. The selected segment
+   slides via a single absolutely-positioned indicator (driven by
+   :has() selector + sibling order — pure CSS, no JS).
+   Use for: density, alignment, toggle groups, view-mode switchers.    */
+.hx-segmented {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  gap: 0;
+}
+.hx-segmented-option {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 0.4375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem; font-weight: 500; color: var(--hx-fg-muted);
+  border-radius: calc(var(--hx-radius-md) - 3px);
+  cursor: pointer; user-select: none; white-space: nowrap;
+  transition: color var(--hx-dur-base) var(--hx-ease-out);
+  z-index: 1;
+}
+.hx-segmented-option > svg { width: 14px; height: 14px; flex-shrink: 0; transition: transform var(--hx-dur-base) var(--hx-ease-spring); }
+.hx-segmented-option:hover { color: var(--hx-fg); }
+.hx-segmented-option > input { position: absolute; opacity: 0; pointer-events: none; }
+.hx-segmented-option:has(> input:checked) {
+  color: var(--hx-fg);
+  background: var(--hx-bg-elev);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.18),
+              inset 0 0 0 1px var(--hx-line-soft);
+  /* Tiny pop on selection — the indicator settles after a 320ms spring */
+  animation: hx-seg-pop 0.32s var(--hx-ease-spring);
+}
+.hx-segmented-option:has(> input:checked) > svg {
+  color: var(--hx-primary);
+  transform: scale(1.05);
+}
+.hx-segmented-option:focus-within {
+  outline: 2px solid var(--hx-ring); outline-offset: 1px;
+}
+@keyframes hx-seg-pop {
+  0%   { transform: scale(0.96); }
+  60%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+/* Vertical segmented (tall list, e.g. checkout shipping options) */
+.hx-segmented-vertical {
+  flex-direction: column; align-items: stretch; padding: 4px; gap: 2px;
+}
+.hx-segmented-vertical .hx-segmented-option {
+  justify-content: flex-start;
+  padding: 0.5rem 0.625rem;
+}
+
+/* Radio cards — full-bleed cards selectable as a radio group.
+   Each card is a label wrapping a hidden radio input. On select, the
+   card lifts its border to primary, gets a subtle tinted background,
+   and reveals a check pill in the corner. Micro-motion: the icon
+   nudges up by 1px on selection. Use for: plan picker, region picker,
+   visual settings, big toggle decisions.                             */
+.hx-radio-card-group {
+  display: grid; gap: 0.5rem;
+}
+.hx-radio-card {
+  position: relative;
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--hx-bg-1);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  cursor: pointer;
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              background var(--hx-dur-base) var(--hx-ease-out),
+              transform var(--hx-dur-fast) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-radio-card:hover {
+  border-color: var(--hx-line-strong);
+  background: var(--hx-bg-2);
+}
+.hx-radio-card:active { transform: translateY(1px); }
+.hx-radio-card > input {
+  position: absolute; opacity: 0; pointer-events: none;
+}
+.hx-radio-card-icon {
+  width: 28px; height: 28px; border-radius: var(--hx-radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--hx-bg-2);
+  color: var(--hx-fg-muted);
+  flex-shrink: 0;
+  transition: background var(--hx-dur-base) var(--hx-ease-out),
+              color var(--hx-dur-base) var(--hx-ease-out),
+              transform var(--hx-dur-base) var(--hx-ease-spring);
+}
+.hx-radio-card-icon > svg { width: 16px; height: 16px; }
+.hx-radio-card-text {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1;
+}
+.hx-radio-card-title { font-size: 0.8125rem; font-weight: 500; color: var(--hx-fg); }
+.hx-radio-card-sub { font-size: 0.6875rem; color: var(--hx-fg-muted); line-height: 1.4; }
+.hx-radio-card-check {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1px solid var(--hx-line);
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background var(--hx-dur-base) var(--hx-ease-out),
+              border-color var(--hx-dur-base) var(--hx-ease-out),
+              transform var(--hx-dur-base) var(--hx-ease-spring);
+  color: white;
+}
+.hx-radio-card-check > svg {
+  width: 10px; height: 10px;
+  opacity: 0; transform: scale(0.6);
+  transition: opacity var(--hx-dur-base) var(--hx-ease-out),
+              transform var(--hx-dur-base) var(--hx-ease-spring);
+}
+.hx-radio-card:has(> input:checked) {
+  border-color: var(--hx-primary);
+  background: oklch(from var(--hx-primary) l c h / 0.06);
+}
+.hx-radio-card:has(> input:checked) .hx-radio-card-icon {
+  background: oklch(from var(--hx-primary) l c h / 0.16);
+  color: var(--hx-primary);
+  transform: translateY(-1px);
+}
+.hx-radio-card:has(> input:checked) .hx-radio-card-check {
+  background: var(--hx-primary);
+  border-color: var(--hx-primary);
+  transform: scale(1.05);
+}
+.hx-radio-card:has(> input:checked) .hx-radio-card-check > svg {
+  opacity: 1; transform: scale(1);
+}
+.hx-radio-card:focus-within { outline: 2px solid var(--hx-ring); outline-offset: 2px; }
+
+/* Custom select-trigger — a select-styled button that mimics a native
+   <select> but allows ICONS in the chosen value. The native <select>
+   cannot show an inline icon for its current value, so this is the
+   common SaaS pattern for region pickers, account switchers, etc.
+   The actual menu uses .hx-popover + .hx-combo-item (already exist). */
+.hx-select-trigger {
+  width: 100%;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--hx-bg-1);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  color: var(--hx-fg); font-size: 0.875rem; font-family: inherit;
+  text-align: left; cursor: pointer; user-select: none;
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out),
+              background var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-select-trigger:hover { border-color: var(--hx-line-strong); background: var(--hx-bg); }
+.hx-select-trigger:focus-visible,
+.hx-select-trigger[aria-expanded="true"] {
+  outline: 0; border-color: var(--hx-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.18);
+}
+.hx-select-trigger > .hx-select-icon {
+  width: 18px; height: 18px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: oklch(from var(--field-accent, var(--hx-primary)) l c h / 0.16);
+  color: oklch(from var(--field-accent, var(--hx-primary)) calc(l + 0.10) c h);
+}
+.hx-select-trigger > .hx-select-icon > svg { width: 11px; height: 11px; }
+.hx-select-trigger > .hx-select-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hx-select-trigger > .hx-select-meta {
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-faint); margin-left: auto; flex-shrink: 0;
+}
+.hx-select-trigger > .hx-select-chevron {
+  width: 14px; height: 14px; color: var(--hx-fg-faint); flex-shrink: 0;
+  transition: transform var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-select-trigger[aria-expanded="true"] > .hx-select-chevron { transform: rotate(180deg); }
+.hx-select-trigger:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Placeholder mode — when no value is chosen */
+.hx-select-trigger[data-empty="true"] > .hx-select-value { color: var(--hx-fg-faint); }
+.hx-select-trigger[data-empty="true"] > .hx-select-icon  { background: var(--hx-bg-2); color: var(--hx-fg-faint); }
+
+/* Combo-item ICON + META — a richer combo item that has a leading icon
+   tile, a primary label, a secondary label below, and a meta on the right
+   (keyboard shortcut, region code, etc). Used inside the popover that
+   the .hx-select-trigger opens.                                        */
+.hx-combo-item-rich {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.4375rem 0.5rem;
+  border-radius: var(--hx-radius-sm);
+  cursor: pointer;
+}
+.hx-combo-item-rich:hover,
+.hx-combo-item-rich[data-highlighted="true"],
+.hx-combo-item-rich[aria-selected="true"] { background: var(--hx-bg-2); }
+.hx-combo-item-rich-icon {
+  width: 18px; height: 18px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: oklch(from var(--field-accent, var(--hx-primary)) l c h / 0.16);
+  color: oklch(from var(--field-accent, var(--hx-primary)) calc(l + 0.10) c h);
+}
+.hx-combo-item-rich-icon > svg { width: 11px; height: 11px; }
+.hx-combo-item-rich-text { display: flex; flex-direction: column; gap: 0; min-width: 0; flex: 1; }
+.hx-combo-item-rich-label { font-size: 0.8125rem; color: var(--hx-fg); line-height: 1.3; }
+.hx-combo-item-rich-sub { font-size: 0.6875rem; color: var(--hx-fg-faint); line-height: 1.3; }
+.hx-combo-item-rich-meta {
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-faint); margin-left: auto; flex-shrink: 0;
+}
+.hx-combo-item-rich-check {
+  width: 14px; height: 14px; color: var(--hx-primary); flex-shrink: 0;
+  opacity: 0;
+}
+.hx-combo-item-rich[aria-selected="true"] .hx-combo-item-rich-check { opacity: 1; }
+
+/* Combobox / select-like list */
+.hx-combo-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.375rem 0.5rem; font-size: 0.8125rem;
+  border-radius: var(--hx-radius-sm); cursor: pointer;
+}
+.hx-combo-item:hover, .hx-combo-item[data-highlighted="true"] { background: var(--hx-bg-2); }
+.hx-combo-item-meta { margin-left: auto; font-size: 0.6875rem; color: var(--hx-fg-faint); font-family: var(--hx-font-mono); }
+
+/* ──────────────────────────────────────────────────────────
+   NAVBAR (top app bar)
+   ────────────────────────────────────────────────────────── */
+.hx-navbar {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  background: oklch(from var(--hx-bg-1) l c h / 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid var(--hx-line);
+  position: relative;
+  z-index: 10;
+}
+.hx-navbar-brand {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding-right: 0.875rem; margin-right: 0.25rem;
+  border-right: 1px solid var(--hx-line);
+}
+.hx-navbar-brand-mark {
+  width: 26px; height: 26px;
+  border-radius: var(--hx-radius-sm);
+  background: var(--hx-primary);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hx-fg-on-brand);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.18), var(--hx-shadow-glow);
+}
+.hx-navbar-tabs {
+  display: flex; align-items: center; gap: 0.125rem;
+}
+.hx-navbar-tab {
+  display: flex; align-items: center; gap: 0.4375rem;
+  padding: 0.375rem 0.6875rem;
+  font-size: 0.8125rem; color: var(--hx-fg-muted);
+  border-radius: var(--hx-radius-sm); cursor: pointer;
+  transition: background var(--hx-dur-fast), color var(--hx-dur-fast);
+}
+.hx-navbar-tab:hover { background: var(--hx-bg-2); color: var(--hx-fg); }
+.hx-navbar-tab[aria-current="page"] { background: var(--hx-bg-2); color: var(--hx-fg); }
+
+.hx-navbar-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex: 1; max-width: 480px;
+  padding: 0.375rem 0.5rem 0.375rem 0.625rem;
+  background: var(--hx-bg);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  color: var(--hx-fg-muted);
+  font-size: 0.8125rem;
+  cursor: text;
+  transition: border-color var(--hx-dur-base);
+}
+.hx-navbar-search:hover { border-color: var(--hx-line-strong); }
+.hx-navbar-search:focus-within { border-color: var(--hx-primary); box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.18); }
+.hx-navbar-search input {
+  flex: 1; background: transparent; border: 0; outline: 0;
+  color: var(--hx-fg); font-size: inherit; font-family: inherit;
+  min-width: 0;
+}
+.hx-navbar-search input::placeholder { color: var(--hx-fg-faint); }
+
+.hx-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: var(--hx-radius-sm);
+  border: 1px solid transparent;
+  background: transparent; color: var(--hx-fg-muted);
+  cursor: pointer; position: relative;
+  transition: background var(--hx-dur-fast), color var(--hx-dur-fast);
+}
+.hx-iconbtn:hover { background: var(--hx-bg-2); color: var(--hx-fg); }
+.hx-iconbtn[data-active="true"] { background: var(--hx-bg-2); color: var(--hx-fg); }
+.hx-iconbtn-badge {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 14px; height: 14px; padding: 0 3px;
+  background: var(--hx-danger); color: white;
+  font-size: 9px; font-weight: 600; line-height: 14px;
+  border-radius: 7px; text-align: center;
+  border: 1.5px solid var(--hx-bg-1);
+  font-variant-numeric: tabular-nums;
+}
+.hx-iconbtn-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--hx-success);
+  border: 1.5px solid var(--hx-bg-1);
+}
+
+.hx-navbar-user {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.1875rem 0.4375rem 0.1875rem 0.1875rem;
+  border-radius: var(--hx-radius-full);
+  cursor: pointer;
+  transition: background var(--hx-dur-fast);
+}
+.hx-navbar-user:hover { background: var(--hx-bg-2); }
+.hx-navbar-user .hx-avatar {
+  width: 26px; height: 26px; font-size: 0.6875rem;
+  background: var(--hx-primary-soft);
+  color: var(--hx-primary);
+  border-color: oklch(from var(--hx-primary) l c h / 0.3);
+}
+
+/* Org / context switcher pill */
+.hx-org-pill {
+  display: flex; align-items: center; gap: 0.4375rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.3125rem;
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  font-size: 0.75rem; color: var(--hx-fg);
+  cursor: pointer;
+  transition: border-color var(--hx-dur-fast);
+}
+.hx-org-pill:hover { border-color: var(--hx-line-strong); }
+.hx-org-pill-mark {
+  width: 18px; height: 18px; border-radius: 4px;
+  background: linear-gradient(135deg, var(--hx-accent-500), var(--hx-primary));
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+}
+
+/* Notification panel */
+.hx-notif-panel {
+  width: 360px;
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-shadow-lg);
+  overflow: hidden;
+  animation: hx-menu-in var(--hx-dur-base) var(--hx-ease-spring);
+  transform-origin: top right;
+}
+.hx-notif-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--hx-line);
+}
+.hx-notif-item {
+  display: flex; gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--hx-line-soft);
+  cursor: pointer;
+  transition: background var(--hx-dur-fast);
+  position: relative;
+}
+.hx-notif-item:hover { background: var(--hx-bg-1); }
+.hx-notif-item[data-unread="true"]::before {
+  content: ''; position: absolute; left: 4px; top: 16px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--hx-primary);
+  box-shadow: 0 0 6px var(--hx-primary);
+}
+.hx-notif-item-icon {
+  width: 28px; height: 28px; border-radius: var(--hx-radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+  background: var(--hx-bg-2); color: var(--hx-fg-muted);
+}
+.hx-notif-item-time {
+  font-size: 0.6875rem; color: var(--hx-fg-faint);
+  font-family: var(--hx-font-mono); margin-top: 2px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   SIDEBAR — full / compact rail / collapsed
+   ────────────────────────────────────────────────────────── */
+.hx-sidebar {
+  display: flex; flex-direction: column;
+  background: var(--hx-bg-1);
+  border-right: 1px solid var(--hx-line);
+  transition: width var(--hx-dur-base) var(--hx-ease-out);
+  position: relative;
+}
+.hx-sidebar[data-mode="full"] { width: 240px; flex: 0 0 240px; min-width: 0; }
+.hx-sidebar[data-mode="compact"] { width: 180px; flex: 0 0 180px; min-width: 0; }
+.hx-sidebar[data-mode="rail"] { width: 56px; flex: 0 0 56px; min-width: 0; }
+
+/* Compact — tighter padding, smaller label, no section headers */
+.hx-sidebar[data-mode="compact"] .hx-sidebar-head { padding: 0.5rem 0.625rem; min-height: 42px; }
+.hx-sidebar[data-mode="compact"] .hx-sidebar-body { padding: 0.4375rem; }
+.hx-sidebar[data-mode="compact"] .hx-sidebar-section {
+  font-size: 0.625rem;
+  padding: 0.625rem 0.375rem 0.25rem;
+}
+.hx-sidebar[data-mode="compact"] .hx-sidebar-item {
+  padding: 0.3125rem 0.4375rem; gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.hx-sidebar[data-mode="compact"] .hx-sidebar-icon { width: 14px; height: 14px; }
+.hx-sidebar[data-mode="compact"] .hx-sidebar-brand-text { font-size: 0.75rem; }
+.hx-sidebar[data-mode="compact"] .hx-sidebar-foot { padding: 0.375rem; }
+
+.hx-sidebar-head {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--hx-line);
+  min-height: 48px;
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-head { padding: 0.75rem; justify-content: center; }
+/* In rail mode the visible label/meta are hidden, but we keep them in the DOM
+   and re-purpose .hx-sidebar-label as a hover flyout to the right of the icon.
+   Active rail accent (::after) and hover bg (::before) are untouched. */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-brand-text,
+.hx-sidebar[data-mode="rail"] .hx-sidebar-section,
+.hx-sidebar[data-mode="rail"] .hx-sidebar-meta,
+.hx-sidebar[data-mode="rail"] .hx-sidebar-foot-text {
+  display: none;
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-item {
+  justify-content: center; padding: 0.5rem; gap: 0;
+  position: relative;
+}
+/* Rail-mode hover: flyout label using the existing .hx-sidebar-label element.
+   Hidden by default (display:none); shown on hover with a fade-in animation. */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-label {
+  display: none;
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-item:hover > .hx-sidebar-label {
+  display: block;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--hx-bg-3);
+  color: var(--hx-fg);
+  padding: 0.3125rem 0.5625rem;
+  border-radius: var(--hx-radius-sm);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid var(--hx-line);
+  box-shadow: var(--hx-shadow-md);
+  z-index: 30;
+  animation: hx-fade-in 140ms var(--hx-ease-out);
+}
+
+/* Rail-mode flyout panel: when hovering a group trigger, show the children
+   panel as a popover to the right. .hx-sidebar-children is normally a grid-row
+   accordion; in rail mode we re-position it as an absolute popover panel.    */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-children {
+  display: none;        /* fully hidden by default in rail mode */
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  min-width: 200px;
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  box-shadow: var(--hx-shadow-lg);
+  padding: 0.375rem;
+  z-index: 30;
+}
+/* In rail mode the accordion's open-state must NOT auto-show children — they
+   only appear via hover/focus flyout. Override the accordion open-row rule.   */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-group[data-open="true"] > .hx-sidebar-children {
+  display: none;
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-group:hover > .hx-sidebar-children,
+.hx-sidebar[data-mode="rail"] .hx-sidebar-group:focus-within > .hx-sidebar-children {
+  display: block;
+  animation: hx-fade-in 160ms var(--hx-ease-out);
+}
+/* When the group flyout is open, suppress the simple label chip on the trigger
+   (the panel itself shows the group name as a header). Avoid double tooltip.   */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-group:hover > .hx-sidebar-group-trigger:hover > .hx-sidebar-label {
+  display: none;
+}
+/* Children inside the rail flyout: reset depth-based padding (we have no
+   visual indent context here) and let them act like normal items. */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-children-inner {
+  overflow: visible;
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-children-inner::before {
+  display: none;     /* no guide rail in flyout */
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-children .hx-sidebar-item[data-depth="1"],
+.hx-sidebar[data-mode="rail"] .hx-sidebar-children .hx-sidebar-item[data-depth="2"] {
+  padding-left: 0.5625rem;
+  padding-right: 0.5625rem;
+  font-size: 0.8125rem;
+  color: var(--hx-fg-muted);
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-children .hx-sidebar-item[aria-current="page"]::after {
+  left: -2px;
+  width: 3px;
+  top: 6px; bottom: 6px;
+}
+/* Group-flyout header chip: show the group label at the top of the panel.
+   We synthesize it via the flyout-panel pseudo-element. */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-group:hover > .hx-sidebar-children::before {
+  content: attr(data-group-label);
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hx-fg-faint);
+  padding: 0.5rem 0.5625rem 0.375rem;
+}
+
+.hx-sidebar-body { flex: 1; overflow: auto; padding: 0.625rem; }
+.hx-sidebar-foot {
+  border-top: 1px solid var(--hx-line);
+  padding: 0.5rem;
+}
+.hx-sidebar-section {
+  font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--hx-fg-faint);
+  padding: 0.875rem 0.5rem 0.375rem;
+}
+.hx-sidebar-item {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.4375rem 0.5rem;
+  font-size: 0.8125rem; color: var(--hx-fg-muted);
+  border-radius: var(--hx-radius-sm);
+  cursor: pointer; user-select: none;
+  position: relative;
+  isolation: isolate;
+  /* ::before = hover background (uniform, all depths). ::after = active rail accent.
+     Separating them avoids the dimension clash that previously "wiggled" children. */
+  transition: color var(--hx-dur-fast) var(--hx-ease-out);
+}
+/* Subtle slide motion on hover — applied uniformly so child items match parents */
+.hx-sidebar-item .hx-sidebar-icon,
+.hx-sidebar-item .hx-sidebar-label {
+  transition: transform var(--hx-dur-base) var(--hx-ease-out),
+              opacity var(--hx-dur-fast) var(--hx-ease-out),
+              color var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-sidebar-item:hover .hx-sidebar-icon,
+.hx-sidebar-item:hover .hx-sidebar-label {
+  transform: translateX(2px);
+}
+.hx-sidebar-item:hover { color: var(--hx-fg); }
+/* Hover background — dedicated layer, fades in/out, never collides with active-rail */
+.hx-sidebar-item::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--hx-bg-2);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms var(--hx-ease-out);
+}
+.hx-sidebar-item:hover::before { opacity: 1; }
+
+/* Active-item background pill — uses a separate layer (.hx-sidebar-pill via box-shadow trick on container) */
+.hx-sidebar-item[aria-current="page"] {
+  color: var(--hx-fg);
+  /* Active state hover-bg should stay visible (no flicker on hover of active item) */
+}
+.hx-sidebar-item[aria-current="page"]::before {
+  opacity: 1;
+  background: linear-gradient(90deg,
+    oklch(from var(--hx-primary) l c h / 0.14) 0%,
+    oklch(from var(--hx-primary) l c h / 0.06) 60%,
+    transparent 100%);
+  animation: hx-sidebar-active-in 280ms var(--hx-ease-spring);
+}
+@keyframes hx-sidebar-active-in {
+  from { opacity: 0; transform: translateX(-6px) scaleX(0.92); transform-origin: left; }
+  to   { opacity: 1; transform: translateX(0) scaleX(1); }
+}
+/* Left rail accent — slides in on activation */
+.hx-sidebar-item[aria-current="page"] > .hx-sidebar-rail,
+.hx-sidebar-item[aria-current="page"]::after {
+  content: ''; position: absolute;
+  left: -2px; top: 6px; bottom: 6px;
+  width: 3px; background: var(--hx-primary);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 12px -2px oklch(from var(--hx-primary) l c h / 0.6);
+  animation: hx-rail-slide 320ms var(--hx-ease-spring);
+}
+@keyframes hx-rail-slide {
+  from { transform: scaleY(0.2); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+.hx-sidebar[data-mode="rail"] .hx-sidebar-item[aria-current="page"]::after { left: 0; }
+
+.hx-sidebar-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; transition: opacity var(--hx-dur-fast), transform var(--hx-dur-fast) var(--hx-ease-spring); }
+.hx-sidebar-item:hover .hx-sidebar-icon { opacity: 1; }
+.hx-sidebar-item[aria-current="page"] .hx-sidebar-icon { opacity: 1; color: var(--hx-primary); }
+
+.hx-sidebar-meta {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--hx-fg-faint);
+  font-family: var(--hx-font-mono);
+}
+.hx-sidebar-item[data-active-meta="true"] .hx-sidebar-meta {
+  color: var(--hx-primary);
+}
+
+/* ── NESTED ITEMS — indented children with accordion expand/collapse ── */
+.hx-sidebar-group { display: flex; flex-direction: column; position: relative; }
+.hx-sidebar-group-trigger {
+  /* Inherits .hx-sidebar-item but adds a chevron that rotates on open */
+}
+.hx-sidebar-chevron {
+  margin-left: auto;
+  width: 12px; height: 12px;
+  flex-shrink: 0;
+  color: var(--hx-fg-faint);
+  transition: transform var(--hx-dur-base) var(--hx-ease-spring), color var(--hx-dur-fast);
+  transform: rotate(-90deg);
+}
+.hx-sidebar-group[data-open="true"] > .hx-sidebar-group-trigger .hx-sidebar-chevron {
+  transform: rotate(0deg);
+  color: var(--hx-fg-muted);
+}
+.hx-sidebar-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--hx-dur-base) var(--hx-ease-out);
+  position: relative;
+}
+.hx-sidebar-group[data-open="true"] > .hx-sidebar-children {
+  grid-template-rows: 1fr;
+}
+.hx-sidebar-children-inner {
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+/* Child items: indented; vertical guide rail to show hierarchy */
+.hx-sidebar-children-inner::before {
+  content: ''; position: absolute;
+  left: 1rem; top: 0.25rem; bottom: 0.25rem;
+  width: 1px;
+  background: var(--hx-line);
+}
+.hx-sidebar-item[data-depth="1"] {
+  padding-left: 1.875rem;
+  font-size: 0.78125rem;
+  color: var(--hx-fg-subtle);
+}
+.hx-sidebar-item[data-depth="1"] .hx-sidebar-icon {
+  width: 13px; height: 13px;
+}
+.hx-sidebar-item[data-depth="1"]:hover { color: var(--hx-fg); }
+.hx-sidebar-item[data-depth="1"][aria-current="page"] {
+  color: var(--hx-fg);
+}
+/* Child active rail aligns with parent guide rail */
+.hx-sidebar-item[data-depth="1"][aria-current="page"]::after {
+  left: 1rem; width: 2px;
+  background: var(--hx-primary);
+  box-shadow: 0 0 8px -1px oklch(from var(--hx-primary) l c h / 0.5);
+}
+.hx-sidebar-item[data-depth="2"] {
+  padding-left: 2.625rem;
+  font-size: 0.75rem;
+}
+.hx-sidebar-item[data-depth="2"][aria-current="page"]::after { left: 1.75rem; }
+
+/* Rail mode hides chevrons (children render as flyouts; chevron isn't useful) */
+.hx-sidebar[data-mode="rail"] .hx-sidebar-chevron { display: none; }
+
+/* ── COLLAPSE TOGGLE — clearer affordance ── */
+.hx-sidebar-toggle {
+  position: absolute; top: 18px; right: -14px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 6;
+  color: var(--hx-fg-muted);
+  box-shadow: var(--hx-shadow-sm), 0 0 0 3px var(--hx-bg);
+  transition: background var(--hx-dur-fast), color var(--hx-dur-fast),
+              border-color var(--hx-dur-fast), transform var(--hx-dur-base) var(--hx-ease-spring),
+              box-shadow var(--hx-dur-fast);
+}
+.hx-sidebar-toggle:hover {
+  background: var(--hx-primary); color: var(--hx-fg-on-brand);
+  border-color: var(--hx-primary);
+  transform: scale(1.08);
+  box-shadow: var(--hx-shadow-md), 0 0 0 3px var(--hx-bg), 0 0 18px -2px oklch(from var(--hx-primary) l c h / 0.5);
+}
+.hx-sidebar-toggle:active { transform: scale(0.94); }
+.hx-sidebar-toggle:focus-visible {
+  outline: 2px solid var(--hx-ring);
+  outline-offset: 2px;
+}
+.hx-sidebar[data-toggle-pos="edge"] .hx-sidebar-toggle svg { transition: transform var(--hx-dur-base) var(--hx-ease-spring); transform: rotate(180deg); }
+.hx-sidebar[data-toggle-pos="edge"][data-mode="rail"] .hx-sidebar-toggle svg { transform: rotate(0deg); }
+/* In rail mode the brand icon is centered at the top; the edge pill at top:18px
+   would visually clip into it. Drop the pill below the brand row.            */
+.hx-sidebar[data-toggle-pos="edge"][data-mode="rail"] .hx-sidebar-toggle {
+  top: 56px;
+}
+
+/* ── Collapse-button placement variants ───────────────────
+   Default = "edge" pill on the right edge (above).
+   Other modes are inline within head/foot or floating bottom-right.    */
+.hx-sidebar[data-toggle-pos="header-end"] .hx-sidebar-toggle,
+.hx-sidebar[data-toggle-pos="header-start"] .hx-sidebar-toggle {
+  position: static;
+  border-radius: var(--hx-radius-md);
+  width: 30px; height: 30px;
+  box-shadow: none;
+  background: transparent;
+  border-color: transparent;
+}
+.hx-sidebar[data-toggle-pos="header-end"] .hx-sidebar-toggle:hover,
+.hx-sidebar[data-toggle-pos="header-start"] .hx-sidebar-toggle:hover {
+  background: var(--hx-bg-2); color: var(--hx-fg);
+  border-color: var(--hx-line);
+  transform: none;
+  box-shadow: none;
+}
+.hx-sidebar[data-toggle-pos="header-end"] .hx-sidebar-toggle { margin-left: auto; }
+.hx-sidebar[data-toggle-pos="header-start"] .hx-sidebar-toggle { order: -1; /* before brand */ }
+.hx-sidebar[data-toggle-pos="footer"] .hx-sidebar-toggle {
+  position: static; width: 100%; height: 36px;
+  border-radius: var(--hx-radius-md);
+  background: var(--hx-bg-2);
+  border-color: var(--hx-line);
+  box-shadow: none;
+  display: flex; gap: 0.5rem;
+  padding: 0 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--hx-fg-muted);
+  letter-spacing: -0.005em;
+}
+.hx-sidebar[data-toggle-pos="footer"] .hx-sidebar-toggle:hover {
+  background: var(--hx-primary); color: var(--hx-fg-on-brand);
+  transform: none;
+  box-shadow: none;
+}
+.hx-sidebar[data-toggle-pos="floating"] .hx-sidebar-toggle {
+  position: fixed; left: var(--hx-sidebar-float-x, 224px); bottom: 1.5rem; top: auto; right: auto;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  box-shadow: var(--hx-shadow-lg);
+  background: var(--hx-primary);
+  color: var(--hx-fg-on-brand);
+  border-color: oklch(from var(--hx-primary) l c h / 0.5);
+}
+.hx-sidebar[data-toggle-pos="floating"] .hx-sidebar-toggle:hover {
+  background: var(--hx-primary-hover);
+  box-shadow: var(--hx-shadow-lg), 0 0 24px -4px oklch(from var(--hx-primary) l c h / 0.6);
+}
+.hx-sidebar[data-toggle-pos="floating"][data-mode="rail"] .hx-sidebar-toggle { left: 40px; }
+.hx-sidebar[data-toggle-pos="hidden"] .hx-sidebar-toggle { display: none; }
+
+/* ── ATMOSPHERE — tinted/textured sidebar surfaces ──
+   Apply via data-atmosphere on the sidebar itself. Layered on top of
+   --hx-bg-1 so theme tokens still drive base color.                     */
+.hx-sidebar[data-atmosphere] { position: relative; isolation: isolate; }
+.hx-sidebar[data-atmosphere]::before {
+  content: ''; position: absolute; inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.hx-sidebar[data-atmosphere="dots"]::before {
+  background-image: radial-gradient(var(--hx-grid-line) 1px, transparent 1.2px);
+  background-size: 14px 14px;
+  opacity: 0.5;
+}
+.hx-sidebar[data-atmosphere="grid"]::before {
+  background-image:
+    linear-gradient(to right, var(--hx-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hx-grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.4;
+}
+.hx-sidebar[data-atmosphere="diag"]::before {
+  background-image: repeating-linear-gradient(
+    45deg, var(--hx-grid-line) 0 1px, transparent 1px 10px
+  );
+  opacity: 0.5;
+}
+.hx-sidebar[data-atmosphere="topo"]::before {
+  background:
+    radial-gradient(ellipse 200px 100px at 0% 30%, transparent 38%, oklch(from var(--hx-primary) l c h / 0.10) 39%, oklch(from var(--hx-primary) l c h / 0.10) 40%, transparent 41%),
+    radial-gradient(ellipse 240px 120px at 100% 75%, transparent 38%, oklch(from var(--hx-primary) l c h / 0.08) 39%, oklch(from var(--hx-primary) l c h / 0.08) 40%, transparent 41%);
+}
+.hx-sidebar[data-atmosphere="bloom"]::before {
+  background:
+    radial-gradient(420px circle at 0% 0%, oklch(from var(--hx-primary) l c h / 0.18), transparent 60%),
+    radial-gradient(360px circle at 0% 100%, oklch(from var(--hx-primary) l c h / 0.10), transparent 60%);
+}
+.hx-sidebar[data-atmosphere="noise"]::before {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC45JyBudW1PY3RhdmVzPScyJyBzdGl0Y2hUaWxlcz0nc3RpdGNoJy8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsdGVyPSd1cmwoI24pJyBvcGFjaXR5PScwLjU1Jy8+PC9zdmc+");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+.hx-sidebar[data-atmosphere="circuit"]::before {
+  background-image:
+    linear-gradient(0deg, transparent 23px, oklch(from var(--hx-primary) l c h / 0.16) 23px, oklch(from var(--hx-primary) l c h / 0.16) 24px, transparent 24px),
+    linear-gradient(90deg, transparent 23px, oklch(from var(--hx-primary) l c h / 0.16) 23px, oklch(from var(--hx-primary) l c h / 0.16) 24px, transparent 24px),
+    radial-gradient(oklch(from var(--hx-primary) l c h / 0.45) 1.5px, transparent 2px);
+  background-size: 24px 24px, 24px 24px, 24px 24px;
+  background-position: 0 0, 0 0, 24px 24px;
+  opacity: 0.4;
+}
+
+/* Tinted moods — stronger override of the surface itself */
+.hx-sidebar[data-atmosphere="brand"] {
+  background: linear-gradient(180deg,
+    oklch(from var(--hx-primary) l c h / 0.10) 0%,
+    var(--hx-bg-1) 60%);
+}
+.hx-sidebar[data-atmosphere="ink"] {
+  background: linear-gradient(180deg, oklch(0.12 0.02 255), oklch(0.16 0.018 255));
+  border-right-color: oklch(0.30 0.014 255);
+  --hx-fg: oklch(0.96 0.005 255);
+  --hx-fg-muted: oklch(0.72 0.014 255);
+  --hx-fg-faint: oklch(0.55 0.015 255);
+  --hx-bg-2: oklch(0.20 0.018 255);
+  --hx-bg-3: oklch(0.24 0.020 255);
+  --hx-line: oklch(0.30 0.014 255);
+}
+
+/* Workspace switcher card inside sidebar */
+.hx-workspace {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.4375rem 0.5rem;
+  background: var(--hx-bg-2);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  cursor: pointer;
+  transition: border-color var(--hx-dur-fast);
+}
+.hx-workspace:hover { border-color: var(--hx-line-strong); }
+
+/* ──────────────────────────────────────────────────────────
+   FOOTER
+   ────────────────────────────────────────────────────────── */
+.hx-footer {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--hx-bg-1);
+  border-top: 1px solid var(--hx-line);
+  font-size: 0.75rem;
+  color: var(--hx-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hx-footer[data-sticky="true"] {
+  position: sticky; bottom: 0; z-index: 5;
+  background: oklch(from var(--hx-bg-1) l c h / 0.92);
+  backdrop-filter: blur(8px);
+}
+.hx-footer-divider {
+  width: 1px; height: 14px; background: var(--hx-line);
+}
+.hx-footer-link {
+  color: var(--hx-fg-muted); transition: color var(--hx-dur-fast);
+}
+.hx-footer-link:hover { color: var(--hx-fg); }
+
+/* Status footer (large, system-style) */
+.hx-statusbar {
+  display: flex; align-items: center; gap: 0; padding: 0;
+  background: var(--hx-bg-1);
+  border-top: 1px solid var(--hx-line);
+  font-family: var(--hx-font-mono);
+  font-size: 0.6875rem;
+  color: var(--hx-fg-muted);
+}
+.hx-statusbar-cell {
+  display: flex; align-items: center; gap: 0.4375rem;
+  padding: 0.25rem 0.625rem;
+  border-right: 1px solid var(--hx-line);
+}
+.hx-statusbar-cell:last-child { border-right: 0; }
+.hx-statusbar-cell[data-state="ok"] { color: var(--hx-success); }
+.hx-statusbar-cell[data-state="warn"] { color: var(--hx-warning); }
+.hx-statusbar-cell[data-state="err"] { color: var(--hx-danger); background: oklch(from var(--hx-danger) l c h / 0.08); }
+
+/* Demo frame so navbar/sidebar/footer get a contained stage */
+.hx-shell-demo {
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  overflow: hidden;
+  background: var(--hx-bg);
+  position: relative;
+}
+
+/* ──────────────────────────────────────────────────────────
+   TYPOGRAPHY — preview cards
+   ────────────────────────────────────────────────────────── */
+.hx-type-pack-card {
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  padding: 1rem;
+  background: var(--hx-bg-elev);
+  cursor: pointer;
+  transition: border-color var(--hx-dur-base), transform var(--hx-dur-base);
+  position: relative;
+}
+.hx-type-pack-card:hover { border-color: var(--hx-line-strong); }
+.hx-type-pack-card[data-selected="true"] {
+  border-color: var(--hx-primary);
+  box-shadow: 0 0 0 1px var(--hx-primary), var(--hx-shadow-md);
+}
+.hx-type-pack-card[data-selected="true"]::after {
+  content: ''; position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--hx-primary);
+  box-shadow: 0 0 8px var(--hx-primary);
+}
+
+/* Background pattern preview tile */
+.hx-pattern-tile {
+  height: 80px; border-radius: var(--hx-radius-md);
+  border: 1px solid var(--hx-line);
+  background-color: var(--hx-bg);
+  position: relative; overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--hx-dur-base), transform var(--hx-dur-base);
+}
+.hx-pattern-tile:hover { border-color: var(--hx-line-strong); transform: translateY(-1px); }
+.hx-pattern-tile[data-selected="true"] {
+  border-color: var(--hx-primary);
+  box-shadow: 0 0 0 1px var(--hx-primary);
+}
+.hx-pattern-label {
+  position: absolute; bottom: 6px; left: 8px;
+  font-family: var(--hx-font-mono); font-size: 0.6875rem;
+  color: var(--hx-fg-muted);
+  background: oklch(from var(--hx-bg-elev) l c h / 0.85);
+  padding: 1px 6px; border-radius: var(--hx-radius-xs);
+  border: 1px solid var(--hx-line);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SAAS PATTERNS — Finance, Social, Productivity
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Toast / Notification Stack ───────────────────────────── */
+.hx-toast-stack {
+  position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 9999;
+  display: flex; flex-direction: column-reverse; gap: 0.5rem;
+  pointer-events: none;
+}
+.hx-toast {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--hx-bg-3);
+  border: 1px solid var(--hx-line-strong);
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-shadow-lg);
+  pointer-events: all;
+  min-width: 280px; max-width: 360px;
+  animation: hx-toast-in 280ms var(--hx-ease-spring);
+}
+@keyframes hx-toast-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.hx-toast-exit { animation: hx-toast-out 200ms var(--hx-ease-in-out) forwards; }
+@keyframes hx-toast-out {
+  to { opacity: 0; transform: translateX(24px) scale(0.95); }
+}
+.hx-toast-icon {
+  width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px;
+}
+.hx-toast-body { flex: 1; min-width: 0; }
+.hx-toast-title { font-size: 0.875rem; font-weight: 500; }
+.hx-toast-desc  { font-size: 0.8125rem; color: var(--hx-fg-muted); margin-top: 2px; }
+.hx-toast-close {
+  flex-shrink: 0; color: var(--hx-fg-faint); cursor: pointer;
+  transition: color var(--hx-dur-fast);
+}
+.hx-toast-close:hover { color: var(--hx-fg); }
+.hx-toast-success { border-color: oklch(from var(--hx-success) l c h / 0.45); background: var(--hx-success-bg); }
+.hx-toast-success .hx-toast-icon { color: var(--hx-success); }
+.hx-toast-warning { border-color: oklch(from var(--hx-warning) l c h / 0.45); background: var(--hx-warning-bg); }
+.hx-toast-warning .hx-toast-icon { color: var(--hx-warning); }
+.hx-toast-danger  { border-color: oklch(from var(--hx-danger)  l c h / 0.45); background: var(--hx-danger-bg); }
+.hx-toast-danger  .hx-toast-icon { color: var(--hx-danger); }
+.hx-toast-info    { border-color: oklch(from var(--hx-info)    l c h / 0.45); background: var(--hx-info-bg); }
+.hx-toast-info    .hx-toast-icon { color: var(--hx-info); }
+
+/* ── Drawer / Side Sheet ──────────────────────────────────── */
+.hx-drawer-backdrop {
+  position: fixed; inset: 0; z-index: 40;
+  background: var(--hx-bg-overlay);
+  backdrop-filter: blur(4px);
+  animation: hx-fade-in var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-drawer {
+  position: fixed; right: 0; top: 0; bottom: 0; z-index: 50;
+  width: 440px; max-width: 92vw;
+  background: var(--hx-bg-elev);
+  border-left: 1px solid var(--hx-line);
+  box-shadow: var(--hx-shadow-lg);
+  display: flex; flex-direction: column;
+  animation: hx-drawer-in var(--hx-dur-slow) var(--hx-ease-out);
+}
+@keyframes hx-drawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.hx-drawer-exit { animation: hx-drawer-out var(--hx-dur-base) var(--hx-ease-in-out) forwards; }
+@keyframes hx-drawer-out {
+  to { transform: translateX(100%); }
+}
+.hx-drawer-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--hx-line);
+  min-height: 56px;
+}
+.hx-drawer-body   { flex: 1; overflow: auto; padding: 1.25rem; }
+.hx-drawer-footer {
+  display: flex; gap: 0.5rem; justify-content: flex-end;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--hx-line);
+}
+
+/* ── Wizard / Stepper ─────────────────────────────────────── */
+.hx-stepper { display: flex; align-items: center; }
+.hx-step    { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.hx-step-icon {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 600; flex-shrink: 0;
+  border: 2px solid var(--hx-line); color: var(--hx-fg-muted);
+  background: var(--hx-bg-1);
+  transition: all var(--hx-dur-base) var(--hx-ease-spring);
+}
+.hx-step[data-state="active"] .hx-step-icon {
+  border-color: var(--hx-primary);
+  color: var(--hx-fg-on-brand);
+  background: var(--hx-primary);
+  box-shadow: 0 0 0 4px oklch(from var(--hx-primary) l c h / 0.2);
+}
+.hx-step[data-state="done"] .hx-step-icon {
+  border-color: var(--hx-success); color: white; background: var(--hx-success);
+}
+.hx-step-label {
+  font-size: 0.8125rem; font-weight: 500;
+  color: var(--hx-fg-muted);
+  transition: color var(--hx-dur-base);
+}
+.hx-step[data-state="active"] .hx-step-label { color: var(--hx-fg); }
+.hx-step[data-state="done"]   .hx-step-label { color: var(--hx-success); }
+.hx-step-connector {
+  flex: 1; height: 2px; min-width: 2.5rem;
+  background: var(--hx-line);
+  transition: background var(--hx-dur-slow) var(--hx-ease-out);
+  border-radius: 2px;
+}
+.hx-step[data-state="done"] + .hx-step-connector { background: var(--hx-success); }
+
+/* ── Tag Input ────────────────────────────────────────────── */
+.hx-tag-input {
+  display: flex; flex-wrap: wrap; gap: 0.375rem;
+  padding: 0.4375rem 0.625rem;
+  background: var(--hx-bg-1); border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  min-height: 42px; cursor: text;
+  transition: border-color var(--hx-dur-base) var(--hx-ease-out),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-tag-input:focus-within {
+  border-color: var(--hx-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.18);
+}
+.hx-tag-input input {
+  border: 0; background: transparent; outline: none;
+  font-size: 0.875rem; color: var(--hx-fg);
+  min-width: 80px; flex: 1; padding: 0.125rem 0;
+  font-family: inherit;
+}
+.hx-tag-input input::placeholder { color: var(--hx-fg-faint); }
+
+.hx-tag {
+  display: inline-flex; align-items: center; gap: 0.3125rem;
+  padding: 0.1875rem 0.375rem 0.1875rem 0.5rem;
+  background: var(--hx-primary-soft);
+  border: 1px solid oklch(from var(--hx-primary) l c h / 0.3);
+  border-radius: var(--hx-radius-full);
+  font-size: 0.75rem; color: var(--hx-fg);
+  animation: hx-scale-in var(--hx-dur-fast) var(--hx-ease-spring);
+}
+.hx-tag-remove {
+  width: 14px; height: 14px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hx-fg-faint); cursor: pointer;
+  transition: all var(--hx-dur-fast) var(--hx-ease-out);
+}
+.hx-tag-remove:hover { background: var(--hx-danger-bg); color: var(--hx-danger); }
+.hx-tag-neutral { background: var(--hx-bg-2); border-color: var(--hx-line); color: var(--hx-fg-muted); }
+.hx-tag-success { background: var(--hx-success-bg); border-color: oklch(from var(--hx-success) l c h / 0.35); color: var(--hx-success); }
+.hx-tag-warning { background: var(--hx-warning-bg); border-color: oklch(from var(--hx-warning) l c h / 0.35); color: var(--hx-warning); }
+.hx-tag-danger  { background: var(--hx-danger-bg);  border-color: oklch(from var(--hx-danger) l c h / 0.35);  color: var(--hx-danger); }
+
+/* ── File Drop Zone ───────────────────────────────────────── */
+.hx-dropzone {
+  border: 2px dashed var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  padding: 2.5rem 1.5rem;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 0.75rem;
+  cursor: pointer; text-align: center;
+  transition: all var(--hx-dur-base) var(--hx-ease-out);
+  position: relative;
+}
+.hx-dropzone:hover { border-color: var(--hx-primary); background: oklch(from var(--hx-primary) l c h / 0.04); }
+.hx-dropzone[data-active="true"] {
+  border-color: var(--hx-primary); border-style: solid;
+  background: oklch(from var(--hx-primary) l c h / 0.07);
+  box-shadow: 0 0 0 4px oklch(from var(--hx-primary) l c h / 0.12);
+}
+.hx-dropzone-icon {
+  width: 44px; height: 44px; border-radius: var(--hx-radius-md);
+  background: var(--hx-bg-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hx-fg-muted);
+  transition: all var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-dropzone:hover .hx-dropzone-icon,
+.hx-dropzone[data-active="true"] .hx-dropzone-icon {
+  background: oklch(from var(--hx-primary) l c h / 0.12);
+  color: var(--hx-primary);
+}
+.hx-file-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.hx-file-row {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--hx-bg-1); border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  font-size: 0.8125rem;
+  animation: hx-slide-up var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-file-row-icon { width: 28px; height: 28px; border-radius: var(--hx-radius-sm); background: var(--hx-bg-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hx-file-row-name { flex: 1; min-width: 0; font-weight: 500; color: var(--hx-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hx-file-row-size { font-size: 0.6875rem; color: var(--hx-fg-faint); font-family: var(--hx-font-mono); flex-shrink: 0; }
+
+/* ── Stat / KPI Card ──────────────────────────────────────── */
+.hx-stat { display: flex; flex-direction: column; gap: 0.25rem; }
+.hx-stat-label { font-size: 0.75rem; color: var(--hx-fg-muted); letter-spacing: 0.02em; }
+.hx-stat-value {
+  font-size: 1.875rem; font-weight: 600;
+  letter-spacing: -0.03em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--hx-fg);
+}
+.hx-stat-value-sm {
+  font-size: 1.375rem; font-weight: 600;
+  letter-spacing: -0.025em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.hx-stat-delta {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: 0.75rem; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  padding: 0.125rem 0.4375rem;
+  border-radius: var(--hx-radius-full);
+}
+.hx-stat-delta-up   { background: var(--hx-success-bg); color: var(--hx-success); }
+.hx-stat-delta-down { background: var(--hx-danger-bg);  color: var(--hx-danger); }
+.hx-stat-delta-flat { background: var(--hx-bg-2); color: var(--hx-fg-muted); }
+
+/* Sparkline wrapper — the SVG itself is drawn by JS */
+.hx-sparkline { display: block; overflow: visible; }
+.hx-sparkline-up   { color: var(--hx-success); }
+.hx-sparkline-down { color: var(--hx-danger); }
+.hx-sparkline-flat { color: var(--hx-fg-muted); }
+
+/* Number ticker roll animation */
+@keyframes hx-tick-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes hx-tick-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.hx-ticker-cell { display: inline-block; overflow: hidden; vertical-align: top; }
+.hx-ticker-digit { display: block; }
+.hx-ticker-digit[data-dir="up"]   { animation: hx-tick-up   400ms var(--hx-ease-out); }
+.hx-ticker-digit[data-dir="down"] { animation: hx-tick-down 400ms var(--hx-ease-out); }
+
+/* ── Activity Timeline ────────────────────────────────────── */
+.hx-timeline { display: flex; flex-direction: column; }
+.hx-tl-item  { display: flex; gap: 0.875rem; padding-bottom: 1.25rem; position: relative; }
+.hx-tl-item:last-child { padding-bottom: 0; }
+.hx-tl-spine { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 28px; }
+.hx-tl-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--hx-bg-2); border: 2px solid var(--hx-line);
+  color: var(--hx-fg-muted); flex-shrink: 0; z-index: 1;
+  transition: all var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-tl-dot[data-tone="success"] { border-color: oklch(from var(--hx-success) l c h / 0.5); background: var(--hx-success-bg); color: var(--hx-success); }
+.hx-tl-dot[data-tone="danger"]  { border-color: oklch(from var(--hx-danger)  l c h / 0.5); background: var(--hx-danger-bg);  color: var(--hx-danger); }
+.hx-tl-dot[data-tone="warning"] { border-color: oklch(from var(--hx-warning) l c h / 0.5); background: var(--hx-warning-bg); color: var(--hx-warning); }
+.hx-tl-dot[data-tone="info"]    { border-color: oklch(from var(--hx-info)    l c h / 0.5); background: var(--hx-info-bg);    color: var(--hx-info); }
+.hx-tl-dot[data-tone="brand"]   { border-color: oklch(from var(--hx-primary) l c h / 0.5); background: var(--hx-primary-soft); color: var(--hx-primary); }
+.hx-tl-line {
+  flex: 1; width: 2px; background: var(--hx-line);
+  margin-top: 3px; border-radius: 2px; min-height: 8px;
+}
+.hx-tl-body   { flex: 1; min-width: 0; padding-top: 4px; }
+.hx-tl-title  { font-size: 0.875rem; font-weight: 500; color: var(--hx-fg); }
+.hx-tl-meta   { font-size: 0.75rem; color: var(--hx-fg-faint); margin-top: 2px; font-family: var(--hx-font-mono); }
+.hx-tl-content { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--hx-fg-muted); }
+
+/* ── Date Range Picker / Calendar ─────────────────────────── */
+.hx-cal {
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-shadow-lg);
+  overflow: hidden; min-width: 272px;
+  animation: hx-scale-in var(--hx-dur-base) var(--hx-ease-spring);
+  transform-origin: top left;
+}
+.hx-cal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--hx-line-soft);
+}
+.hx-cal-grid { padding: 0.625rem; }
+.hx-cal-dow {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 0.25rem;
+}
+.hx-cal-dow span {
+  text-align: center; font-size: 0.6875rem;
+  color: var(--hx-fg-faint); padding: 0.25rem;
+  font-weight: 500; letter-spacing: 0.04em;
+}
+.hx-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+.hx-cal-day {
+  height: 32px; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8125rem; border-radius: var(--hx-radius-sm);
+  cursor: pointer; font-variant-numeric: tabular-nums;
+  transition: all var(--hx-dur-fast) var(--hx-ease-out);
+  position: relative; user-select: none;
+}
+.hx-cal-day:hover { background: var(--hx-bg-2); }
+.hx-cal-day[data-today="true"] { color: var(--hx-primary); font-weight: 600; }
+.hx-cal-day[data-today="true"]::after {
+  content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--hx-primary);
+}
+.hx-cal-day[data-selected="true"] {
+  background: var(--hx-primary) !important; color: var(--hx-fg-on-brand); border-radius: var(--hx-radius-sm);
+}
+.hx-cal-day[data-selected="true"]::after { display: none; }
+.hx-cal-day[data-range-start="true"] {
+  background: var(--hx-primary) !important; color: var(--hx-fg-on-brand);
+  border-radius: var(--hx-radius-sm) 0 0 var(--hx-radius-sm);
+}
+.hx-cal-day[data-range-end="true"] {
+  background: var(--hx-primary) !important; color: var(--hx-fg-on-brand);
+  border-radius: 0 var(--hx-radius-sm) var(--hx-radius-sm) 0;
+}
+.hx-cal-day[data-in-range="true"] {
+  background: oklch(from var(--hx-primary) l c h / 0.15);
+  border-radius: 0; color: var(--hx-fg);
+}
+.hx-cal-day[data-in-range="true"]:hover { background: oklch(from var(--hx-primary) l c h / 0.22); }
+.hx-cal-day[data-muted="true"] { color: var(--hx-fg-faint); opacity: 0.5; }
+.hx-cal-day[data-disabled="true"] { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+.hx-cal-presets {
+  border-top: 1px solid var(--hx-line-soft);
+  padding: 0.5rem 0.625rem;
+  display: flex; flex-wrap: wrap; gap: 0.375rem;
+}
+
+/* ── Rich Tooltip ─────────────────────────────────────────── */
+.hx-richtooltip {
+  position: absolute; z-index: 60;
+  background: var(--hx-bg-3);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md);
+  box-shadow: var(--hx-shadow-lg);
+  min-width: 200px; max-width: 280px;
+  padding: 0.625rem 0.75rem;
+  animation: hx-fade-in var(--hx-dur-base) var(--hx-ease-out);
+  pointer-events: none;
+}
+.hx-richtooltip-title { font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.375rem; }
+.hx-richtooltip-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  font-size: 0.75rem; color: var(--hx-fg-muted); padding: 0.125rem 0;
+}
+.hx-richtooltip-val { font-family: var(--hx-font-mono); color: var(--hx-fg); }
+.hx-richtooltip::before {
+  content: ''; position: absolute; bottom: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--hx-line);
+}
+.hx-richtooltip::after {
+  content: ''; position: absolute; bottom: calc(100% - 1px); left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-bottom-color: var(--hx-bg-3);
+}
+.hx-richtooltip[data-side="top"]::before {
+  bottom: auto; top: 100%;
+  border-bottom-color: transparent; border-top-color: var(--hx-line);
+}
+.hx-richtooltip[data-side="top"]::after {
+  bottom: auto; top: calc(100% - 1px);
+  border-bottom-color: transparent; border-top-color: var(--hx-bg-3);
+}
+
+/* ── Multi-select Dropdown ────────────────────────────────── */
+.hx-multi-select {
+  position: relative; display: flex; align-items: center;
+  gap: 0.375rem; flex-wrap: wrap;
+  padding: 0.375rem 2.25rem 0.375rem 0.625rem;
+  background: var(--hx-bg-1); border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-md); cursor: pointer;
+  min-height: 38px;
+  transition: border-color var(--hx-dur-base), box-shadow var(--hx-dur-base);
+}
+.hx-multi-select:focus-within,
+.hx-multi-select[data-open="true"] {
+  border-color: var(--hx-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--hx-primary) l c h / 0.18);
+}
+.hx-multi-select-chevron {
+  position: absolute; right: 0.625rem; top: 50%; transform: translateY(-50%);
+  color: var(--hx-fg-faint); pointer-events: none;
+  transition: transform var(--hx-dur-base) var(--hx-ease-spring);
+}
+.hx-multi-select[data-open="true"] .hx-multi-select-chevron { transform: translateY(-50%) rotate(180deg); }
+
+/* ── Empty State ──────────────────────────────────────────── */
+.hx-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 0.5rem;
+  padding: 3rem 2rem; text-align: center;
+}
+.hx-empty-icon {
+  width: 56px; height: 56px; border-radius: var(--hx-radius-xl);
+  background: var(--hx-bg-2); border: 1px solid var(--hx-line);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hx-fg-faint); margin-bottom: 0.5rem;
+}
+.hx-empty-title { font-size: 0.9375rem; font-weight: 500; color: var(--hx-fg); }
+.hx-empty-desc  { font-size: 0.8125rem; color: var(--hx-fg-muted); max-width: 32ch; }
+
+/* ── Popover / Floating Card ──────────────────────────────── */
+.hx-popover {
+  background: var(--hx-bg-elev);
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-shadow-lg);
+  padding: 1rem;
+  min-width: 220px;
+  animation: hx-scale-in var(--hx-dur-base) var(--hx-ease-spring);
+  transform-origin: top center;
+}
+
+/* ── Segment Control ──────────────────────────────────────── */
+.hx-segment {
+  display: inline-flex; gap: 2px;
+  padding: 3px; background: var(--hx-bg-1);
+  border: 1px solid var(--hx-line); border-radius: var(--hx-radius-md);
+}
+.hx-segment-item {
+  padding: 0.3125rem 0.75rem; font-size: 0.8125rem;
+  color: var(--hx-fg-muted); border-radius: var(--hx-radius-sm);
+  cursor: pointer; user-select: none;
+  transition: all var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-segment-item:hover { color: var(--hx-fg); }
+.hx-segment-item[aria-selected="true"] {
+  background: var(--hx-bg-elev); color: var(--hx-fg);
+  box-shadow: var(--hx-shadow-sm);
+}
+
+/* ── Range Slider (dual thumb) ────────────────────────────── */
+.hx-range-track {
+  position: relative; height: 6px; background: var(--hx-bg-3);
+  border-radius: var(--hx-radius-full);
+}
+.hx-range-fill {
+  position: absolute; height: 100%;
+  background: var(--hx-primary); border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ── Accordion ────────────────────────────────────────────── */
+.hx-accordion { display: flex; flex-direction: column; }
+.hx-accord-item {
+  border-bottom: 1px solid var(--hx-line-soft);
+}
+.hx-accord-item:last-child { border-bottom: 0; }
+.hx-accord-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.875rem 0; font-size: 0.875rem; font-weight: 500;
+  cursor: pointer; user-select: none;
+  transition: color var(--hx-dur-fast);
+}
+.hx-accord-trigger:hover { color: var(--hx-primary); }
+.hx-accord-chevron {
+  width: 16px; height: 16px; color: var(--hx-fg-faint); flex-shrink: 0;
+  transition: transform var(--hx-dur-base) var(--hx-ease-spring), color var(--hx-dur-fast);
+}
+.hx-accord-item[data-open="true"] .hx-accord-chevron { transform: rotate(180deg); color: var(--hx-primary); }
+.hx-accord-body {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-accord-item[data-open="true"] .hx-accord-body { grid-template-rows: 1fr; }
+.hx-accord-body-inner { overflow: hidden; min-height: 0; }
+.hx-accord-content { padding: 0 0 0.875rem; font-size: 0.875rem; color: var(--hx-fg-muted); line-height: 1.6; }

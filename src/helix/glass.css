@@ -1,0 +1,113 @@
+/* HELIX — Liquid Glass mood overrides */
+
+.hx-mood-glass {
+  --hx-glass-blur: 20px;
+  --hx-glass-sat: 1.6;
+  --hx-glass-tint-l: 0.36;
+  --hx-glass-tint-c: 0.04;
+  --hx-glass-edge: oklch(1 0 0 / 0.06);
+}
+
+.hx-mood-glass.hx-dark {
+  --hx-bg: oklch(0.14 0.03 230);
+  --hx-bg-1: oklch(0.20 0.04 230 / 0.55);
+  --hx-bg-2: oklch(0.24 0.05 240 / 0.55);
+  --hx-bg-3: oklch(0.28 0.05 250 / 0.6);
+  --hx-bg-elev: oklch(0.22 0.04 235 / 0.55);
+  --hx-line: oklch(1 0 0 / 0.12);
+  --hx-line-soft: oklch(1 0 0 / 0.08);
+  --hx-line-strong: oklch(1 0 0 / 0.22);
+}
+
+.hx-mood-glass.hx-light {
+  --hx-bg: oklch(0.96 0.02 235);
+  --hx-bg-1: oklch(1 0 0 / 0.58);
+  --hx-bg-2: oklch(1 0 0 / 0.72);
+  --hx-bg-3: oklch(0.96 0.02 235 / 0.8);
+  --hx-bg-elev: oklch(1 0 0 / 0.68);
+  --hx-line: oklch(0 0 0 / 0.08);
+  --hx-line-soft: oklch(0 0 0 / 0.05);
+  --hx-line-strong: oklch(0 0 0 / 0.14);
+}
+
+/* Page gets the bloom gradient so surfaces have something to tint */
+.hx-mood-glass body {
+  background:
+    radial-gradient(1200px circle at 10% 0%, oklch(0.60 0.18 280 / 0.25), transparent 50%),
+    radial-gradient(1000px circle at 90% 100%, oklch(0.70 0.16 200 / 0.25), transparent 50%),
+    radial-gradient(800px circle at 50% 50%, oklch(0.60 0.15 320 / 0.18), transparent 60%),
+    var(--hx-bg) !important;
+  background-attachment: fixed !important;
+}
+
+.hx-mood-glass.hx-light body {
+  background:
+    radial-gradient(1200px circle at 10% 0%, oklch(0.85 0.14 280 / 0.35), transparent 50%),
+    radial-gradient(1000px circle at 90% 100%, oklch(0.88 0.12 200 / 0.35), transparent 50%),
+    radial-gradient(800px circle at 50% 50%, oklch(0.85 0.12 320 / 0.28), transparent 60%),
+    var(--hx-bg) !important;
+  background-attachment: fixed !important;
+}
+
+/* Frosted surfaces */
+.hx-mood-glass .hx-card,
+.hx-mood-glass .hx-pagenav,
+.hx-mood-glass .hx-sidebar,
+.hx-mood-glass .hx-navbar,
+.hx-mood-glass .hx-menu,
+.hx-mood-glass .hx-modal,
+.hx-mood-glass .hx-popover,
+.hx-mood-glass .hx-tooltip,
+.hx-mood-glass .hx-toast,
+.hx-mood-glass .hx-hero {
+  backdrop-filter: blur(var(--hx-glass-blur)) saturate(var(--hx-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hx-glass-blur)) saturate(var(--hx-glass-sat));
+}
+
+/* Edge highlight — the signature liquid glass rim. Kept subtle so it reads
+   as a refined edge sheen, not a corner artifact. */
+.hx-mood-glass .hx-card,
+.hx-mood-glass .hx-menu,
+.hx-mood-glass .hx-modal {
+  box-shadow:
+    inset 0 1px 0 0 var(--hx-glass-edge),
+    0 20px 50px -20px oklch(0 0 0 / 0.4);
+}
+
+/* Button gets more tactile */
+.hx-mood-glass .hx-btn-primary {
+  background: linear-gradient(180deg, oklch(from var(--hx-primary) calc(l + 0.05) c h), var(--hx-primary));
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.25),
+    inset 0 -1px 0 0 oklch(0 0 0 / 0.15),
+    0 4px 12px -4px oklch(from var(--hx-primary) l c h / 0.5);
+}
+.hx-mood-glass .hx-btn-secondary,
+.hx-mood-glass .hx-btn-outline {
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: inset 0 1px 0 0 var(--hx-glass-edge);
+}
+
+/* Inputs mimic frosted glass */
+.hx-mood-glass .hx-input,
+.hx-mood-glass .hx-select,
+.hx-mood-glass .hx-textarea {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: oklch(from var(--hx-bg-1) l c h / 0.6);
+}
+
+/* Soften grid patterns — glass should feel clean */
+.hx-mood-glass .hx-bg-dots,
+.hx-mood-glass .hx-grid-bg,
+.hx-mood-glass .hx-grid-bg-fine {
+  opacity: 0.4;
+}
+
+/* Heroes get a subtle inner glow */
+.hx-mood-glass .hx-hero {
+  box-shadow:
+    inset 0 1px 0 0 var(--hx-glass-edge),
+    0 30px 80px -30px oklch(0 0 0 / 0.5);
+}

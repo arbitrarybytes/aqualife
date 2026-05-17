@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AquaLife — Deploy to Render (Free Plan)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --accent: #0284c7;
+    --accent-soft: #e0f2fe;
+    --line: #e2e8f0;
+    --warn-bg: #fef3c7;
+    --warn-line: #f59e0b;
+    --code-bg: #0f172a;
+    --code-ink: #e2e8f0;
+    --ok: #16a34a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 320px, #f1f5f9 320px, #f1f5f9 100%);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  header {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 24px 40px;
+    color: #f1f5f9;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(2,132,199,0.25);
+    color: #7dd3fc;
+    border: 1px solid rgba(125,211,252,0.4);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  header h1 { font-size: 34px; margin: 16px 0 8px; }
+  header p { color: #cbd5e1; font-size: 17px; margin: 0; }
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  h2 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .num {
+    background: var(--accent);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  h3 { font-size: 16px; margin: 22px 0 6px; }
+  .sub { color: var(--muted); margin: 2px 0 18px; font-size: 15px; }
+  ol, ul { padding-left: 22px; }
+  li { margin: 7px 0; }
+  code {
+    background: var(--accent-soft);
+    color: #0369a1;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 13.5px;
+    font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
+    line-height: 1.5;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 14.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+  td code { font-size: 13px; }
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 14.5px;
+  }
+  .callout.warn { background: var(--warn-bg); border-left: 4px solid var(--warn-line); }
+  .callout.info { background: var(--accent-soft); border-left: 4px solid var(--accent); }
+  .callout.ok   { background: #dcfce7; border-left: 4px solid var(--ok); }
+  .callout strong { display: block; margin-bottom: 3px; }
+  .pill {
+    display: inline-block;
+    background: #f1f5f9;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1px 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  footer {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+  hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">DEPLOYMENT GUIDE</span>
+  <h1>Deploy AquaLife to Render</h1>
+  <p>A step-by-step walkthrough for hosting this swimming pool membership app on Render's free plan.</p>
+</header>
+
+<main>
+
+  <!-- OVERVIEW -->
+  <div class="card">
+    <h2><span class="num">i</span> What you're deploying</h2>
+    <p class="sub">Understand the app before you ship it.</p>
+    <p>AquaLife is a <strong>single unified Node application</strong>:</p>
+    <ul>
+      <li>A <strong>Vite + React</strong> frontend that builds into a static <code>dist/</code> folder.</li>
+      <li>An <strong>Express</strong> backend (<code>server/index.js</code>) that exposes the <code>/api/*</code> routes
+          <em>and</em> serves the built frontend from the same process.</li>
+      <li>A <strong>SQLite</strong> database (<code>better-sqlite3</code>) that auto-creates and auto-seeds
+          demo data on first boot.</li>
+    </ul>
+    <p>Because the server serves both the API and the static site, you only need
+       <strong>one Render Web Service</strong> — no separate frontend hosting required.</p>
+
+    <div class="callout warn">
+      <strong>⚠ Important: the free plan has an ephemeral disk</strong>
+      Render's free tier does not keep written files between restarts or deploys. The SQLite
+      file (<code>server/data.sqlite</code>) will be wiped whenever the service restarts. The app
+      automatically re-seeds fresh demo data when it finds an empty database, so this is
+      <em>fine for a proof-of-concept demo</em> — but any members/check-ins created at runtime
+      will not survive a restart. See Step 6 for how to add a persistent disk if you need that.
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <h2><span class="num">1</span> Push your code to a Git repository</h2>
+    <p class="sub">Render deploys from GitHub, GitLab, or Bitbucket.</p>
+    <p>This project is not yet a Git repo. From the project folder
+       (<code>swim-mgr</code>), run:</p>
+    <pre><code>git init
+git add .
+git commit -m "Initial commit — AquaLife"</code></pre>
+    <p>Then create an empty repository on GitHub and push to it:</p>
+    <pre><code>git remote add origin https://github.com/&lt;your-username&gt;/swim-mgr.git
+git branch -M main
+git push -u origin main</code></pre>
+    <div class="callout info">
+      <strong>Check your .gitignore</strong>
+      The included <code>.gitignore</code> already excludes <code>node_modules</code>, <code>dist</code>,
+      and the local <code>server/data.sqlite*</code> files. That is correct — Render installs
+      dependencies and builds fresh on its own servers.
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <h2><span class="num">2</span> Create a new Web Service on Render</h2>
+    <p class="sub">render.com → Dashboard → New.</p>
+    <ol>
+      <li>Log in at <a href="https://dashboard.render.com" target="_blank" rel="noopener">dashboard.render.com</a>.</li>
+      <li>Click <strong>New&nbsp;+</strong> → <strong>Web Service</strong>.</li>
+      <li>Connect your GitHub account and select the <code>swim-mgr</code> repository.</li>
+      <li>Render will open the service configuration screen — fill it in as shown in Step 3.</li>
+    </ol>
+    <div class="callout info">
+      <strong>Pick a Web Service — not a Static Site</strong>
+      Although the frontend is static, this app needs a running Node process for the
+      Express API and the SQLite database. A "Static Site" cannot run server code.
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <h2><span class="num">3</span> Configure the service settings</h2>
+    <p class="sub">Enter these values on the configuration screen.</p>
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Name</td><td><code>aqualife</code> (or any name you like)</td></tr>
+        <tr><td>Region</td><td>Closest to your users (e.g. Singapore for India)</td></tr>
+        <tr><td>Branch</td><td><code>main</code></td></tr>
+        <tr><td>Runtime / Language</td><td><code>Node</code></td></tr>
+        <tr><td>Build Command</td><td><code>npm install &amp;&amp; npm run build</code></td></tr>
+        <tr><td>Start Command</td><td><code>npm start</code></td></tr>
+        <tr><td>Instance Type</td><td><span class="pill">Free</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Why these commands?</h3>
+    <ul>
+      <li><code>npm install</code> — installs dependencies, and compiles the native
+          <code>better-sqlite3</code> module against Render's Linux environment.</li>
+      <li><code>npm run build</code> — runs <code>vite build</code> to produce the
+          <code>dist/</code> folder the server will serve.</li>
+      <li><code>npm start</code> — runs <code>node server/index.js</code>, which serves
+          both the API and <code>dist/</code> on a single port.</li>
+    </ul>
+
+    <div class="callout ok">
+      <strong>✓ The app already reads Render's PORT</strong>
+      <code>server/index.js</code> uses <code>process.env.PORT || 4000</code>. Render injects
+      <code>PORT</code> automatically, so the app binds correctly with no extra work.
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card">
+    <h2><span class="num">4</span> Set the Node version (recommended)</h2>
+    <p class="sub">Avoids native-build surprises with better-sqlite3.</p>
+    <p>Add an environment variable on the <strong>Environment</strong> tab so Render uses a
+       known-good Node version:</p>
+    <table>
+      <thead><tr><th>Key</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><code>NODE_VERSION</code></td><td><code>20</code></td></tr>
+      </tbody>
+    </table>
+    <p>Alternatively, commit a <code>.node-version</code> file or add an
+       <code>"engines"</code> field to <code>package.json</code>:</p>
+    <pre><code>{
+  "engines": {
+    "node": "20.x"
+  }
+}</code></pre>
+    <p>No other environment variables are required — the app has no secrets, no external
+       services, and a mocked OTP/payment flow.</p>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="card">
+    <h2><span class="num">5</span> Deploy and verify</h2>
+    <p class="sub">Click Create Web Service and watch the logs.</p>
+    <ol>
+      <li>Click <strong>Create Web Service</strong>. Render clones the repo, runs the build
+          command, then the start command.</li>
+      <li>Watch the <strong>Logs</strong> tab. A successful boot prints:
+          <pre><code>[db] seeded demo data
+[api] AquaLife backend running on http://localhost:10000</code></pre>
+      </li>
+      <li>When the status turns <strong>Live</strong>, open the URL Render assigned
+          (e.g. <code>https://aqualife.onrender.com</code>).</li>
+    </ol>
+
+    <h3>Try the demo</h3>
+    <p>The app seeds demo accounts. Log in with any of these mobile numbers; the OTP is
+       always <code>1234</code>:</p>
+    <table>
+      <thead><tr><th>Role</th><th>Mobile</th></tr></thead>
+      <tbody>
+        <tr><td>Member</td><td><code>9810000001</code> (Aarav Sharma)</td></tr>
+        <tr><td>Attendant</td><td><code>9000000002</code> (Ravi Kumar)</td></tr>
+        <tr><td>Admin</td><td><code>9000000001</code> (Ops Admin)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠ Free services sleep after inactivity</strong>
+      A free Web Service spins down after ~15 minutes with no traffic. The next visit
+      triggers a cold start that can take 30–60 seconds. This also restarts the process —
+      and, because of the ephemeral disk, re-seeds the database back to demo defaults.
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="card">
+    <h2><span class="num">6</span> Optional — make data persistent</h2>
+    <p class="sub">Only if you need members/check-ins to survive restarts.</p>
+    <p>The free plan does <strong>not</strong> include persistent disks. If you want runtime
+       data to survive restarts, you have two options:</p>
+    <ul>
+      <li><strong>Add a Render Persistent Disk</strong> — requires upgrading to a paid
+          instance type. Mount it at e.g. <code>/data</code>, then point the database there
+          by editing <code>server/db.js</code> to use
+          <code>process.env.DB_PATH || path.join(__dirname, 'data.sqlite')</code> and setting
+          <code>DB_PATH=/data/data.sqlite</code> as an environment variable.</li>
+      <li><strong>Use a hosted database</strong> — Render's free PostgreSQL, or an external
+          SQLite-compatible service. This requires changing the data layer from
+          <code>better-sqlite3</code> to a Postgres client.</li>
+    </ul>
+    <div class="callout info">
+      <strong>For a proof-of-concept, you can skip this entirely.</strong>
+      The auto-seed behaviour means every cold start gives you a clean, fully-populated
+      demo — which is often exactly what you want when showing the app.
+    </div>
+  </div>
+
+  <!-- TROUBLESHOOTING -->
+  <div class="card">
+    <h2><span class="num">?</span> Troubleshooting</h2>
+    <table>
+      <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Build fails on <code>better-sqlite3</code></td>
+          <td>Set <code>NODE_VERSION</code> to <code>20</code> (Step 4). Native modules need a
+              supported Node version with build tools — Render's Node runtime includes them.</td>
+        </tr>
+        <tr>
+          <td>Page loads but shows a blank screen</td>
+          <td>Confirm the build command includes <code>npm run build</code>. Without
+              <code>dist/</code>, the server has no frontend to serve.</td>
+        </tr>
+        <tr>
+          <td>"Cannot GET /" or 404 on routes</td>
+          <td>Same cause — the <code>dist/</code> folder is missing. Check the build logs for
+              the <code>vite build</code> step completing.</td>
+        </tr>
+        <tr>
+          <td>App deploys but never goes Live</td>
+          <td>Ensure the start command is <code>npm start</code> and the app binds to
+              <code>process.env.PORT</code> (it already does).</td>
+        </tr>
+        <tr>
+          <td>Data disappeared after a while</td>
+          <td>Expected on the free plan — the disk is ephemeral and the service sleeps.
+              See Step 6.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- QUICK REFERENCE -->
+  <div class="card">
+    <h2><span class="num">★</span> Quick reference</h2>
+    <table>
+      <tbody>
+        <tr><td><strong>Service type</strong></td><td>Web Service (Free)</td></tr>
+        <tr><td><strong>Build command</strong></td><td><code>npm install &amp;&amp; npm run build</code></td></tr>
+        <tr><td><strong>Start command</strong></td><td><code>npm start</code></td></tr>
+        <tr><td><strong>Env vars</strong></td><td><code>NODE_VERSION=20</code> (recommended)</td></tr>
+        <tr><td><strong>Port</strong></td><td>Auto — app reads <code>process.env.PORT</code></td></tr>
+        <tr><td><strong>Demo OTP</strong></td><td><code>1234</code> for every login</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  <hr />
+  <p>Generated for the AquaLife project (swim-mgr). Free-plan limitations are accurate as of
+     May 2026 — check Render's current pricing and plan docs before relying on them.</p>
+</footer>
+
+</body>
+</html>

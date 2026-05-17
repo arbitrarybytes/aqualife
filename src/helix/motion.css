@@ -1,0 +1,345 @@
+/* HELIX — Motion library: micro-interactions across components */
+
+/* ─── ENTRY ANIMATIONS ─── */
+@keyframes hx-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hx-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hx-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hx-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes hx-zoom-spring {
+  0% { opacity: 0; transform: scale(0.92); }
+  60% { transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Page route transition */
+.hx-route-enter { animation: hx-slide-up 0.42s var(--hx-ease-out); }
+
+/* List items — staggered entry */
+.hx-stagger > * {
+  opacity: 0;
+  animation: hx-slide-up 0.42s var(--hx-ease-out) forwards;
+}
+.hx-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.hx-stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.hx-stagger > *:nth-child(3) { animation-delay: 0.10s; }
+.hx-stagger > *:nth-child(4) { animation-delay: 0.14s; }
+.hx-stagger > *:nth-child(5) { animation-delay: 0.18s; }
+.hx-stagger > *:nth-child(6) { animation-delay: 0.22s; }
+.hx-stagger > *:nth-child(7) { animation-delay: 0.26s; }
+.hx-stagger > *:nth-child(8) { animation-delay: 0.30s; }
+.hx-stagger > *:nth-child(n+9) { animation-delay: 0.34s; }
+
+/* Table rows fade in when filter changes */
+.hx-table[data-animating="true"] tbody tr {
+  animation: hx-row-in 0.32s var(--hx-ease-out) backwards;
+}
+.hx-table[data-animating="true"] tbody tr:nth-child(1) { animation-delay: 0.0s; }
+.hx-table[data-animating="true"] tbody tr:nth-child(2) { animation-delay: 0.03s; }
+.hx-table[data-animating="true"] tbody tr:nth-child(3) { animation-delay: 0.06s; }
+.hx-table[data-animating="true"] tbody tr:nth-child(4) { animation-delay: 0.09s; }
+.hx-table[data-animating="true"] tbody tr:nth-child(5) { animation-delay: 0.12s; }
+.hx-table[data-animating="true"] tbody tr:nth-child(n+6) { animation-delay: 0.15s; }
+@keyframes hx-row-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── MODALS / OVERLAYS ─── */
+.hx-modal[data-state="open"], .hx-modal:not([data-state]) {
+  animation: hx-modal-in 0.32s var(--hx-ease-spring);
+}
+@keyframes hx-modal-in {
+  0% { opacity: 0; transform: scale(0.94) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.hx-modal-backdrop, .hx-overlay-backdrop {
+  animation: hx-fade-in 0.24s var(--hx-ease-out);
+}
+
+/* Sheets — slide-in from edge */
+.hx-sheet[data-side="right"] { animation: hx-sheet-right 0.36s var(--hx-ease-out); }
+.hx-sheet[data-side="left"] { animation: hx-sheet-left 0.36s var(--hx-ease-out); }
+.hx-sheet[data-side="bottom"] { animation: hx-sheet-bottom 0.36s var(--hx-ease-out); }
+@keyframes hx-sheet-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes hx-sheet-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes hx-sheet-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Toasts */
+.hx-toast { animation: hx-toast-in 0.32s var(--hx-ease-spring); }
+@keyframes hx-toast-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Popovers / tooltips */
+.hx-popover, .hx-tooltip {
+  animation: hx-pop-in 0.18s var(--hx-ease-out);
+  transform-origin: top center;
+}
+@keyframes hx-pop-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-2px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Accordion / collapsible */
+.hx-collapse[data-open="true"] > .hx-collapse-body {
+  animation: hx-collapse-down 0.28s var(--hx-ease-out);
+}
+@keyframes hx-collapse-down {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 600px; }
+}
+
+/* ─── HOVER STATES — sheen + lift ─── */
+.hx-card-sheen { position: relative; overflow: hidden; isolation: isolate; }
+.hx-card-sheen::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, oklch(1 0 0 / 0.06) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.7s var(--hx-ease-out);
+  pointer-events: none;
+  z-index: 0;
+}
+.hx-card-sheen:hover::after { transform: translateX(100%); }
+.hx-card-sheen > * { position: relative; z-index: 1; }
+
+/* Generic card lift */
+.hx-card-lift { transition: transform var(--hx-dur-base) var(--hx-ease-out), box-shadow var(--hx-dur-base) var(--hx-ease-out), border-color var(--hx-dur-fast); }
+.hx-card-lift:hover { transform: translateY(-2px); box-shadow: var(--hx-shadow-md); border-color: var(--hx-line-strong); }
+
+/* ─── CLICK / PRESS ─── */
+.hx-press { transition: transform 80ms var(--hx-ease-out); }
+.hx-press:active { transform: scale(0.97); }
+
+/* Ripple-ish flash */
+.hx-flash { position: relative; overflow: hidden; }
+.hx-flash::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at center, oklch(1 0 0 / 0.15), transparent 60%);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+}
+.hx-flash:active::before { opacity: 1; transition: opacity 0.05s; }
+
+/* ─── SIDEBAR NAV — active indicator slide ─── */
+.hx-sidebar-item, .hx-pagenav-link {
+  transition: background var(--hx-dur-fast) var(--hx-ease-out),
+              color var(--hx-dur-fast) var(--hx-ease-out),
+              padding var(--hx-dur-base) var(--hx-ease-out);
+}
+.hx-sidebar-item:hover { padding-left: 0.6rem; }
+.hx-sidebar-item[aria-current="page"]::before {
+  animation: hx-rail-grow 0.32s var(--hx-ease-spring);
+}
+.hx-pagenav-link.active::before {
+  animation: hx-rail-grow 0.32s var(--hx-ease-spring);
+}
+@keyframes hx-rail-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+/* ─── NAVBAR TABS — sliding indicator ─── */
+.hx-navbar-tab {
+  transition: color var(--hx-dur-fast) var(--hx-ease-out);
+  position: relative;
+}
+.hx-navbar-tab[aria-current="page"]::after {
+  content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px;
+  height: 2px; background: var(--hx-primary); border-radius: 2px;
+  animation: hx-tab-underline 0.32s var(--hx-ease-out);
+}
+@keyframes hx-tab-underline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ─── BADGE — pulse on appear ─── */
+.hx-badge[data-pulse="true"] { animation: hx-badge-pulse 0.5s var(--hx-ease-spring); }
+@keyframes hx-badge-pulse {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Status dot live pulse */
+.hx-dot-online::after {
+  content: ''; position: absolute; inset: -2px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hx-success);
+  animation: hx-dot-pulse 2s ease-out infinite;
+  opacity: 0;
+}
+.hx-dot-online { position: relative; }
+@keyframes hx-dot-pulse {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* ─── INPUT — focus glow ─── */
+.hx-input, .hx-select, .hx-textarea {
+  transition: border-color var(--hx-dur-fast),
+              box-shadow var(--hx-dur-base) var(--hx-ease-out),
+              background var(--hx-dur-fast);
+}
+
+/* ─── CHECKBOX / SWITCH — checkmark draw ─── */
+.hx-checkbox:checked + .hx-checkbox-mark::after {
+  animation: hx-check-draw 0.32s var(--hx-ease-out);
+}
+@keyframes hx-check-draw {
+  from { stroke-dashoffset: 16; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* ─── NUMBER counter tick ─── */
+@keyframes hx-num-flip {
+  0% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-50%); opacity: 0; }
+  51% { transform: translateY(50%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ─── SKELETON shimmer (existing) just reaffirm ─── */
+@keyframes hx-shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── ATTENTION — shake (form errors, denied actions) ─── */
+@keyframes hx-shake {
+  0%, 100% { transform: translateX(0); }
+  15%, 45%, 75% { transform: translateX(-5px); }
+  30%, 60%, 90% { transform: translateX(5px); }
+}
+.hx-shake { animation: hx-shake 0.42s var(--hx-ease-out); }
+
+/* ─── ATTENTION — soft glow pulse (highlight a row, draw eye to a CTA) ─── */
+@keyframes hx-attn-pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(from var(--hx-primary) l c h / 0.55); }
+  70%  { box-shadow: 0 0 0 10px oklch(from var(--hx-primary) l c h / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(from var(--hx-primary) l c h / 0); }
+}
+.hx-attn { animation: hx-attn-pulse 1.4s var(--hx-ease-out) 2; }
+
+/* ─── SWAP — content cross-fades + slides up over old content ─── */
+@keyframes hx-swap-out {
+  to { opacity: 0; transform: translateY(-6px) scale(0.98); }
+}
+@keyframes hx-swap-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.hx-swap-out { animation: hx-swap-out 0.18s var(--hx-ease-in) forwards; }
+.hx-swap-in  { animation: hx-swap-in 0.32s var(--hx-ease-out); }
+
+/* ─── DRAW-IN — SVG path stroke draws on entry. Pair with
+   stroke-dasharray on the path; the dashoffset keyframe animates
+   the path "writing in" from start to end. */
+@keyframes hx-draw-in {
+  from { stroke-dashoffset: var(--hx-draw-len, 200); }
+  to   { stroke-dashoffset: 0; }
+}
+.hx-draw {
+  stroke-dasharray: var(--hx-draw-len, 200);
+  animation: hx-draw-in 0.9s var(--hx-ease-out) forwards;
+}
+
+/* ─── COUNT-UP — numeric tick. Apply to a span around the digits;
+   on every change the digit slides up while the new one slides in.
+   Reads more polished than instant text swaps for stat counters. */
+@keyframes hx-num-tick {
+  0%   { transform: translateY(0); opacity: 1; }
+  40%  { transform: translateY(-100%); opacity: 0; }
+  41%  { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.hx-num-tick { display: inline-block; animation: hx-num-tick 0.36s var(--hx-ease-snap); }
+
+/* ─── MAGNETIC — buttons that lean toward the cursor on hover.
+   Uses a CSS variable updated from JS (--mx, --my as -1..1).
+   Falls back gracefully to a plain transform if the JS isn't wired. */
+.hx-magnet {
+  --mx: 0; --my: 0;
+  transition: transform var(--hx-dur-base) var(--hx-ease-out);
+  will-change: transform;
+}
+.hx-magnet:hover { transform: translate(calc(var(--mx) * 6px), calc(var(--my) * 6px)); }
+
+/* ─── REVEAL — clip-path wipe. Useful for hero text or stats that
+   should feel "carved in" instead of just fading. */
+@keyframes hx-reveal-up {
+  from { clip-path: inset(0 0 100% 0); transform: translateY(8px); }
+  to   { clip-path: inset(0 0 0 0); transform: translateY(0); }
+}
+.hx-reveal { animation: hx-reveal-up 0.6s var(--hx-ease-out); }
+
+/* ─── BREATHE — subtle infinite scale, for "live" status indicators
+   beyond the dot pulse (e.g. a recording badge, a working state). */
+@keyframes hx-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.04); opacity: 0.9; }
+}
+.hx-breathe { animation: hx-breathe 2.4s var(--hx-ease-in-out) infinite; }
+
+/* ─── BLINK-CARET — text input feel for live transcription / AI typing. */
+@keyframes hx-blink-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.hx-caret::after {
+  content: ''; display: inline-block;
+  width: 2px; height: 1em;
+  background: currentColor; margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: hx-blink-caret 1s step-end infinite;
+}
+
+/* ─── ACCORDION-GRID — grid-template-rows transition for a clean
+   open/close that doesn't need a fixed max-height. Wrap the body
+   in a child that uses overflow:hidden. */
+.hx-accordion-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--hx-dur-slow) var(--hx-ease-out);
+}
+.hx-accordion-grid[data-open="true"] { grid-template-rows: 1fr; }
+.hx-accordion-grid > * { overflow: hidden; }
+
+/* ─── PROGRESS — indeterminate sweep. */
+@keyframes hx-progress-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.hx-progress-bar { position: relative; overflow: hidden; }
+.hx-progress-bar::before {
+  content: ''; position: absolute; inset: 0;
+  width: 25%;
+  background: linear-gradient(90deg, transparent, var(--hx-primary), transparent);
+  animation: hx-progress-sweep 1.4s var(--hx-ease-in-out) infinite;
+}
