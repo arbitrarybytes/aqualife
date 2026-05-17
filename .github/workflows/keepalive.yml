@@ -1,0 +1,32 @@
+name: keepalive
+
+# Pings the Render free-tier service so it does not spin down after 15 min
+# of inactivity. This only resets the idle timer — it does NOT make the
+# SQLite disk persistent (the free plan has an ephemeral filesystem).
+#
+# Setup: add a repository variable named RENDER_URL pointing at your service,
+#   Repo -> Settings -> Secrets and variables -> Actions -> Variables tab
+#   Name:  RENDER_URL   Value: https://your-service.onrender.com
+
+on:
+  schedule:
+    # Every 10 minutes. GitHub cron timing can drift a few minutes under
+    # load, so 10 min keeps a safe margin under Render's 15 min idle window.
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}   # allows manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          URL="${{ vars.RENDER_URL }}"
+          if [ -z "$URL" ]; then
+            echo "::error::RENDER_URL repository variable is not set."
+            exit 1
+          fi
+          echo "Pinging $URL/healthz"
+          curl --fail --silent --show-error --max-time 30 \
+               --retry 3 --retry-delay 20 \
+               "$URL/healthz"
